@@ -335,6 +335,11 @@ tr.clickable:hover td{background:var(--surface-2)}
 .a4 .bar{position:relative; height:9px; background:#e2e2e2; border-radius:2px}
 .a4 .bar i{position:absolute; left:0; top:0; bottom:0; background:#2f6b52; border-radius:2px}
 .a4 .foot{margin-top:5mm; text-align:right; font-size:9.5pt; color:#333}
+.a4 .sg{height:8.6mm; text-align:center; padding:1px}
+.a4 .sg img{max-height:8.5mm; max-width:34mm}
+.a4 .note{margin-top:4mm; font-size:9.5pt; line-height:1.7}
+.a4 .mini td{font-size:8.6pt; padding:2.5px 4px}
+.a4 .kv2{width:100%; border-collapse:collapse; margin-bottom:3mm}
 
 @media print{
   body{background:#fff}
@@ -475,6 +480,7 @@ tr.clickable:hover td{background:var(--surface-2)}
     <button class="navbtn on" data-go="home"><i>▤</i>홈</button>
     <button class="navbtn" data-go="session"><i>＋</i>교육 차수</button>
     <button class="navbtn" data-go="result"><i>◈</i>교육 결과 관리</button>
+    <button class="navbtn" data-go="monthly"><i>▦</i>월간 결과보고</button>
 
     <div class="rail-label">기준 정보</div>
     <button class="navbtn" data-go="settings"><i>⚙</i>설정</button>
@@ -528,6 +534,7 @@ tr.clickable:hover td{background:var(--surface-2)}
               <button data-set="course">과정 관리</button>
               <button data-set="form">설문 문항 관리</button>
               <button data-set="admin">관리자(메일) 관리</button>
+              <button data-set="sms">문자 수신자</button>
               <button data-set="noti">알림 설정</button>
               <button data-set="acct">계정 관리</button>
             </div>
@@ -583,6 +590,17 @@ tr.clickable:hover td{background:var(--surface-2)}
                 </div>
                 <div class="tscroll"><table id="adminTable" style="min-width:640px"></table></div>
                 <p class="hint">교육이 끝나면 여기 등록된 주소로 결과보고서와 출석부 PDF가 갑니다. 수신 구분으로 둘 중 하나만 받게 할 수도 있습니다.</p>
+              </div>
+
+              <!-- 문자 수신자 -->
+              <div class="setpane" id="p-sms">
+                <div class="panel-hd" style="padding:0 0 12px">
+                  <h2>문자 수신자 관리</h2><span class="sub" id="smsCount"></span>
+                  <span class="spacer"></span>
+                  <button class="btn sm primary" id="smsAdd">수신자 추가</button>
+                </div>
+                <div class="tscroll"><table id="smsTable" style="min-width:620px"></table></div>
+                <p class="hint">설문이 끝나면(마지막 응답 + 발송 지연) 여기 등록된 번호로 결과 요약 문자가 갑니다. 알림 설정의 「수신 번호」에도 함께 보냅니다.</p>
               </div>
 
               <!-- 알림 -->
@@ -672,6 +690,30 @@ tr.clickable:hover td{background:var(--surface-2)}
             <table id="repPick" style="min-width:680px"></table>
           </div></div>
         </div>
+      </section>
+
+      <!-- ---------- 출석부 ---------- -->
+      <section class="screen" id="s-attend">
+        <button class="backlink" id="attBack">← 교육 결과 관리</button>
+        <div id="attBody"><div class="panel"><div class="panel-bd"><div class="soon">불러오는 중…</div></div></div></div>
+      </section>
+
+      <!-- ---------- 월간 결과보고 ---------- -->
+      <section class="screen" id="s-monthly">
+        <div class="panel"><div class="panel-bd">
+          <div class="row" style="gap:8px; align-items:center">
+            <select class="inp" id="mY" style="width:110px"></select>
+            <select class="inp" id="mM" style="width:100px"></select>
+            <select class="inp" id="mCo" style="width:130px">
+              <option value="">전체 회사</option><option>CHM</option><option>CHMS</option>
+            </select>
+            <button class="btn" id="mGo">조회</button>
+            <span class="spacer"></span>
+            <button class="btn" id="mPrint">인쇄</button>
+            <button class="btn primary" id="mSend">PDF 만들어 발송</button>
+          </div>
+        </div></div>
+        <div id="monBody"><div class="panel"><div class="panel-bd"><div class="soon">달을 고르고 [조회]를 눌러주세요.</div></div></div></div>
       </section>
 
       <!-- ---------- 결과보고서 작성 ---------- -->
@@ -963,7 +1005,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       + esc(u.id || '') + ' · ' + (u.role === 'master' ? '마스터' : '일반') + '</span>';
     w.classList.toggle('temp', !!u.tempPw);
     if(u.tempPw) w.title = '초기 비밀번호를 쓰고 있습니다. 눌러서 바꿔주세요.';
-    $('railFoot').innerHTML = '4단계 · 결과보고서<br>' + esc(u.name || '');
+    $('railFoot').innerHTML = '5단계 · 출석부 · 월간 · 문자<br>' + esc(u.name || '');
   }
 
   function drawHome(){
@@ -1820,6 +1862,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       + '<span class="spacer"></span>'
       + (s.state === '취소' ? '' : '<button class="btn sm" id="detEdit">수정</button>')
       + (s.state === '취소' || s.state === '임시' ? '' : '<button class="btn sm" id="detRep">결과보고서</button>')
+      + (s.state === '취소' ? '' : '<button class="btn sm" id="detAtt">출석부</button>')
       + (s.state === '취소' ? '' : '<button class="btn sm danger" id="detDel">차수 취소</button>')
       + '</div>'
       + (s.state === '임시'
@@ -1883,6 +1926,7 @@ tr.clickable:hover td{background:var(--surface-2)}
 
     if($('detEdit')) $('detEdit').addEventListener('click', function(){ openSessionDlg(s); });
     if($('detRep')) $('detRep').addEventListener('click', function(){ openReport(s.id); });
+    if($('detAtt')) $('detAtt').addEventListener('click', function(){ openAttend(s.id); });
     if($('detDel')) $('detDel').addEventListener('click', function(){
       confirmDlg('차수 취소', esc(s.date) + ' ' + esc(s.site) + ' 교육을 취소할까요?<br><span style="color:var(--ink-3)">기록은 지우지 않고 상태만 「취소」로 바꿉니다.</span>',
         function(){
@@ -1909,7 +1953,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       '<thead><tr><th style="width:96px">교육일자</th><th style="width:56px">회사</th>'
       + '<th style="width:140px">사업장</th><th>과정</th><th style="width:84px">강사</th>'
       + '<th class="num" style="width:56px">참석</th><th class="num" style="width:56px">응답</th>'
-      + '<th style="width:64px">상태</th><th style="width:96px"></th></tr></thead><tbody>'
+      + '<th style="width:64px">상태</th><th style="width:170px"></th></tr></thead><tbody>'
       + (list.length ? list.map(function(s){
           return '<tr>'
             + '<td class="code">' + esc(s.date) + '</td>'
@@ -1922,12 +1966,14 @@ tr.clickable:hover td{background:var(--surface-2)}
             + '<td><span class="chip ' + (STCHIP[s.state] || 'plain') + '">' + esc(s.state) + '</span></td>'
             + '<td>' + (s.state === '임시'
                 ? '<span class="hint">차수 먼저 채우기</span>'
-                : '<button class="btn sm" data-rep="' + esc(s.id) + '">보고서</button>') + '</td>'
+                : '<button class="btn sm" data-rep="' + esc(s.id) + '">보고서</button> '
+                  + '<button class="btn sm" data-att="' + esc(s.id) + '">출석부</button>') + '</td>'
             + '</tr>';
         }).join('') : '<tr><td colspan="9" class="emptyrow">해당하는 교육이 없습니다.</td></tr>')
       + '</tbody>';
 
     bind($('repPick'), 'data-rep', openReport);
+    bind($('repPick'), 'data-att', openAttend);
   }
 
   /* ---------- 불러오기 ---------- */
@@ -2158,13 +2204,7 @@ tr.clickable:hover td{background:var(--surface-2)}
   }
 
   /* ---------- 인쇄 ---------- */
-  function repPrint(){
-    var root = $('printroot');
-    root.innerHTML = '';
-    root.appendChild($('a4').cloneNode(true));
-    window.print();
-    setTimeout(function(){ root.innerHTML = ''; }, 800);
-  }
+  function repPrint(){ printEl($('a4')); }
 
   /* ---------- PDF 만들어 발송 ---------- */
   function loadLib(src){
@@ -2191,18 +2231,10 @@ tr.clickable:hover td{background:var(--surface-2)}
     repSave(false).then(function(r){
       if(!r || !r.ok){ btn.disabled = false; btn.textContent = old; return; }
       btn.textContent = 'PDF 만드는 중…';
-      return ensurePdfLibs().then(function(){
-        return html2canvas($('a4'), { scale:2, backgroundColor:'#ffffff', useCORS:true, logging:false });
-      }).then(function(canvas){
-        var img = canvas.toDataURL('image/jpeg', 0.92);
-        var doc = new window.jspdf.jsPDF({ orientation:'p', unit:'mm', format:'a4' });
-        doc.addImage(img, 'JPEG', 0, 0, 210, 297, undefined, 'FAST');
-        var out = doc.output('datauristring');
-        var b64 = out.slice(out.indexOf('base64,') + 7);
+      return pdfFrom($('a4')).then(function(pdf){
         btn.textContent = '보내는 중…';
         return apiPost({
-          mode:'reportSend', id:REP.id,
-          pdf:'data:application/pdf;base64,' + b64,
+          mode:'reportSend', id:REP.id, pdf:pdf,
           mails: mails.join(','),
           memo: $('repMemo') ? $('repMemo').value : ''
         });
@@ -2216,6 +2248,344 @@ tr.clickable:hover td{background:var(--surface-2)}
       btn.disabled = false; btn.textContent = old;
       toast('PDF 를 만들지 못했습니다. 잠시 뒤 다시 시도해 주세요.', true);
     });
+  }
+
+  /* ============================================================
+   *  출석부 · 월간 결과보고 · 문자 수신자 — 5단계
+   * ============================================================ */
+
+  /* ---------- PDF 공통 ---------- */
+  function pdfFrom(el){
+    return ensurePdfLibs().then(function(){
+      return html2canvas(el, { scale:2, backgroundColor:'#ffffff', useCORS:true, logging:false });
+    }).then(function(canvas){
+      var img = canvas.toDataURL('image/jpeg', 0.92);
+      var doc = new window.jspdf.jsPDF({ orientation:'p', unit:'mm', format:'a4' });
+      doc.addImage(img, 'JPEG', 0, 0, 210, 297, undefined, 'FAST');
+      var out = doc.output('datauristring');
+      return 'data:application/pdf;base64,' + out.slice(out.indexOf('base64,') + 7);
+    });
+  }
+
+  function printEl(el){
+    var root = $('printroot');
+    root.innerHTML = '';
+    root.appendChild(el.cloneNode(true));
+    window.print();
+    setTimeout(function(){ root.innerHTML = ''; }, 800);
+  }
+
+  /** 관리자 메일 체크박스 묶음 */
+  function mailPicker(admins){
+    if(!admins.length) return '<div class="msg info">받는 사람이 없습니다. 설정 › 관리자(메일) 관리에서 먼저 등록해 주세요.</div>';
+    return admins.map(function(a){
+      return '<label class="mailrow"><input type="checkbox" class="pdfMail" value="' + esc(a.mail) + '" checked>'
+        + '<span>' + esc(a.mail) + '</span> <small>' + esc(a.nm || '') + '</small></label>';
+    }).join('');
+  }
+  function pickedMails(){
+    return Array.prototype.map.call(document.querySelectorAll('.pdfMail:checked'), function(c){ return c.value; });
+  }
+
+  /* ============================================================
+   *  출석부
+   * ============================================================ */
+  var ATT = { id:'', d:null };
+
+  function openAttend(id){
+    ATT = { id:id, d:null };
+    go('attend');
+    $('attBody').innerHTML = '<div class="panel"><div class="panel-bd"><div class="soon">불러오는 중…</div></div></div>';
+    apiGet({ mode:'attendSheet', token:S.token, id:id }).then(function(r){
+      if(!r.ok){ toast(r.error, true); go('result'); return; }
+      ATT.d = r;
+      drawAttend();
+    });
+  }
+
+  function drawAttend(){
+    var d = ATT.d, s = d.session;
+    var admins = (S.admins || []).filter(function(a){ return (a.mail || '').indexOf('@') > 0; });
+
+    $('attBody').innerHTML =
+      '<div class="replay">'
+      + '<div class="repform"><div class="panel">'
+      +   '<div class="panel-hd"><h2>출석부</h2><span class="sub">' + d.people.length + '명</span></div>'
+      +   '<div class="panel-bd">'
+      +     '<p class="hint" style="margin-top:0">QR로 받은 서명이 그대로 들어갑니다. 종이로 받은 분은 인쇄해서 손으로 받으세요.</p>'
+      +     mailPicker(admins)
+      +     '<div class="row" style="margin-top:14px; gap:8px">'
+      +       '<button class="btn" id="attPrint">인쇄</button>'
+      +       '<span class="spacer"></span>'
+      +       '<button class="btn primary" id="attSend"' + (admins.length ? '' : ' disabled') + '>PDF 만들어 발송</button>'
+      +     '</div>'
+      +   '</div></div></div>'
+      + '<div class="reppaper"><div id="a4att" class="a4"></div></div>'
+      + '</div>';
+
+    attPaper();
+    $('attPrint').addEventListener('click', function(){ printEl($('a4att')); });
+    if($('attSend')) $('attSend').addEventListener('click', attSend);
+  }
+
+  function attPaper(){
+    var d = ATT.d, s = d.session, rows = '';
+    var n = Math.max(20, d.people.length);
+    for(var i = 0; i < n; i++){
+      var p = d.people[i];
+      rows += '<tr>'
+        + '<td class="ctr" style="width:9%">' + (i+1) + '</td>'
+        + '<td style="width:22%">' + (p ? esc(p.name) : '') + '</td>'
+        + '<td style="width:24%">' + (p ? esc(p.dept || '') : '') + '</td>'
+        + '<td style="width:20%">' + (p ? esc(p.pos || '') : '') + '</td>'
+        + '<td class="sg" style="width:25%">' + (p && p.sign ? '<img src="' + p.sign + '" alt="">' : '') + '</td>'
+        + '</tr>';
+    }
+
+    $('a4att').innerHTML =
+      '<h1 class="ttl">교 육 참 석 부</h1>'
+      + '<table class="kv2"><colgroup><col style="width:17%"><col style="width:33%"><col style="width:17%"><col style="width:33%"></colgroup><tbody>'
+      + '<tr><td class="lb">교 육 명</td><td colspan="3"><b>' + esc(s.courseNm) + '</b>　<span style="font-size:9pt; color:#555">' + esc(s.kind || '') + '</span></td></tr>'
+      + '<tr><td class="lb">사 업 장</td><td>' + esc(s.co) + ' / ' + esc(s.site) + '</td>'
+      +     '<td class="lb">교육일자</td><td>' + esc(s.date) + (s.start ? '　' + esc(s.start) + '~' + esc(s.end) : '') + '</td></tr>'
+      + '<tr><td class="lb">강　　사</td><td>' + esc(s.teacher || '—') + '</td>'
+      +     '<td class="lb">교육장소</td><td>' + esc(s.place || '—') + '</td></tr>'
+      + '<tr><td class="lb">참석 인원</td><td>' + d.people.length + '명 / 대상 ' + esc(s.target === '' || s.target === undefined ? '—' : s.target) + '명</td>'
+      +     '<td class="lb">차 수 ID</td><td style="font-size:8.5pt">' + esc(s.id) + '</td></tr>'
+      + '</tbody></table>'
+
+      + '<table><tbody>'
+      + '<tr><td class="lb ctr">번호</td><td class="lb ctr">성　명</td><td class="lb ctr">소　속</td><td class="lb ctr">직　책</td><td class="lb ctr">서　명</td></tr>'
+      + rows
+      + '</tbody></table>'
+      + '<div class="note">위와 같이 교육을 실시하고 참석자가 서명하였음을 확인합니다.</div>'
+      + '<div class="foot">보고자 : ' + esc(d.reporter || (S.user && S.user.name) || '') + '　／　작성일 : ' + esc(today_()) + '</div>';
+  }
+
+  function attSend(){
+    var mails = pickedMails();
+    if(!mails.length) return toast('받는 사람을 한 명 이상 고르세요.', true);
+    var s = ATT.d.session;
+    var btn = $('attSend'), old = btn.textContent;
+    btn.disabled = true; btn.textContent = 'PDF 만드는 중…';
+
+    pdfFrom($('a4att')).then(function(pdf){
+      btn.textContent = '보내는 중…';
+      return apiPost({ mode:'pdfSend', kind:'출석부', id:ATT.id,
+        title: s.date + ' ' + s.site + ' ' + s.courseNm, pdf:pdf, mails:mails.join(',') });
+    }).then(function(x){
+      btn.disabled = false; btn.textContent = old;
+      if(!x.ok) return toast(x.error, true);
+      toast(x.message);
+    }).catch(function(){
+      btn.disabled = false; btn.textContent = old;
+      toast('PDF 를 만들지 못했습니다. 잠시 뒤 다시 시도해 주세요.', true);
+    });
+  }
+
+  /* ============================================================
+   *  월간 결과보고
+   * ============================================================ */
+  var MON = { d:null, sum:'' };
+
+  function fillMonthly(){
+    var now = new Date(), y = now.getFullYear(), h = '';
+    for(var i = y; i >= y - 3; i--) h += '<option>' + i + '</option>';
+    $('mY').innerHTML = h;
+    var mh = '';
+    for(var m = 1; m <= 12; m++) mh += '<option value="' + m + '"' + (m === now.getMonth()+1 ? ' selected' : '') + '>' + m + '월</option>';
+    $('mM').innerHTML = mh;
+  }
+
+  function loadMonthly(){
+    $('monBody').innerHTML = '<div class="panel"><div class="panel-bd"><div class="soon">불러오는 중…</div></div></div>';
+    apiGet({ mode:'monthly', token:S.token, y:$('mY').value, m:$('mM').value, co:$('mCo').value })
+      .then(function(r){
+        if(!r.ok){ toast(r.error, true); return; }
+        MON.d = r;
+        drawMonthly();
+      });
+  }
+
+  function drawMonthly(){
+    var admins = (S.admins || []).filter(function(a){ return (a.mail || '').indexOf('@') > 0; });
+    $('monBody').innerHTML =
+      '<div class="replay">'
+      + '<div class="repform"><div class="panel">'
+      +   '<div class="panel-hd"><h2>총평</h2><span class="sub">한 칸만 쓰면 됩니다</span></div>'
+      +   '<div class="panel-bd">'
+      +     '<textarea class="inp" id="monSum" rows="6" placeholder="예) 이번 달은 정기교육 위주로 진행했고 평점이 고르게 높았습니다.">' + esc(MON.sum) + '</textarea>'
+      +     '<div style="margin-top:14px">' + mailPicker(admins) + '</div>'
+      +   '</div></div></div>'
+      + '<div class="reppaper"><div id="a4mon" class="a4"></div></div>'
+      + '</div>';
+    monPaper();
+    $('monSum').addEventListener('input', function(){ MON.sum = this.value; monPaper(); });
+  }
+
+  function monPaper(){
+    var d = MON.d, st = d.stat;
+    var co = d.co || '전체';
+
+    var kinds = Object.keys(d.byKind).map(function(k){
+      return '<tr><td>' + esc(k) + '</td><td class="ctr">' + d.byKind[k] + '차수</td></tr>';
+    }).join('') || '<tr><td colspan="2" class="ctr">—</td></tr>';
+
+    var cos = Object.keys(d.byCo).map(function(k){
+      return '<tr><td>' + esc(k) + '</td><td class="ctr">' + d.byCo[k] + '차수</td></tr>';
+    }).join('') || '<tr><td colspan="2" class="ctr">—</td></tr>';
+
+    var qs = d.questions.slice(0, 5).map(function(q){
+      return '<tr><td colspan="3" style="font-size:9pt">' + esc(q.t) + '</td>'
+        + '<td colspan="2"><div class="bar"><i style="width:' + (q.avg/5*100).toFixed(1) + '%"></i></div></td>'
+        + '<td class="ctr">' + q.avg.toFixed(1) + '</td></tr>';
+    }).join('') || '<tr><td colspan="6" class="ctr">설문 응답이 없습니다.</td></tr>';
+
+    var MAXROW = 11;
+    var list = d.sessions.slice(0, MAXROW).map(function(x){
+      return '<tr><td class="ctr">' + esc(x.date.slice(5)) + '</td><td class="ctr">' + esc(x.co) + '</td>'
+        + '<td>' + esc(x.site) + '</td><td>' + esc(x.courseNm) + '</td>'
+        + '<td class="ctr">' + esc(x.teacher || '—') + '</td>'
+        + '<td class="ctr">' + esc(x.attend || 0) + '</td>'
+        + '<td class="ctr">' + (x.score ? esc(x.score) : '—') + '</td></tr>';
+    }).join('') || '<tr><td colspan="7" class="ctr">실시한 교육이 없습니다.</td></tr>';
+    if(d.sessions.length > MAXROW){
+      list += '<tr><td colspan="7" class="ctr" style="font-size:8.5pt; color:#555">외 ' + (d.sessions.length - MAXROW) + '건</td></tr>';
+    }
+
+    var none = d.none.slice(0, 18).map(function(x){ return x.co + ' ' + x.nm; }).join(' · ')
+      + (d.none.length > 18 ? ' 외 ' + (d.none.length - 18) + '곳' : '');
+
+    $('a4mon').innerHTML =
+      '<h1 class="ttl">월간 교육 결과보고</h1>'
+      + '<table class="kv2"><colgroup><col style="width:17%"><col style="width:33%"><col style="width:17%"><col style="width:33%"></colgroup><tbody>'
+      + '<tr><td class="lb">보고 기간</td><td>' + d.y + '년 ' + d.m + '월</td>'
+      +     '<td class="lb">대상 회사</td><td>' + esc(co) + '</td></tr>'
+      + '<tr><td class="lb">총 차수</td><td>' + st.total + '차수 · ' + st.sites + '개 사업장</td>'
+      +     '<td class="lb">교육 인원</td><td>' + st.people + '명</td></tr>'
+      + '<tr><td class="lb">설문 참여</td><td>' + st.answers + '명 (주관식 ' + st.texts + '건)</td>'
+      +     '<td class="lb">평균 평점</td><td><b>' + (st.avg ? st.avg.toFixed(1) : '—') + '</b> / 5.0</td></tr>'
+      + '</tbody></table>'
+
+      + '<table><colgroup>'
+      +   '<col style="width:17%"><col style="width:16%"><col style="width:17%">'
+      +   '<col style="width:17%"><col style="width:16%"><col style="width:17%">'
+      + '</colgroup><tbody>'
+      + '<tr><td class="sec" colspan="6">1. 회사별 · 구분별 실적</td></tr>'
+      + '<tr><td colspan="3" style="padding:0"><table style="border:0"><tbody>' + cos + '</tbody></table></td>'
+      +     '<td colspan="3" style="padding:0"><table style="border:0"><tbody>' + kinds + '</tbody></table></td></tr>'
+
+      + '<tr><td class="sec" colspan="6">2. 설문 문항별 평균</td></tr>'
+      + qs
+
+      + '<tr><td class="sec" colspan="6">3. 차수별 실시 내역</td></tr>'
+      + '<tr><td colspan="6" style="padding:0"><table class="mini" style="border:0"><tbody>'
+      +   '<tr><td class="lb ctr" style="width:10%">일자</td><td class="lb ctr" style="width:9%">회사</td>'
+      +   '<td class="lb ctr" style="width:22%">사업장</td><td class="lb ctr" style="width:29%">과정</td>'
+      +   '<td class="lb ctr" style="width:14%">강사</td><td class="lb ctr" style="width:8%">참석</td>'
+      +   '<td class="lb ctr" style="width:8%">평점</td></tr>'
+      +   list
+      + '</tbody></table></td></tr>'
+
+      + '<tr><td class="sec" colspan="6">4. 이번 달 교육이 없는 사업장 (' + d.none.length + '곳)</td></tr>'
+      + '<tr><td colspan="6" style="height:14mm; vertical-align:top; font-size:9pt"><span class="clip" style="height:13mm">' + esc(none || '없음') + '</span></td></tr>'
+
+      + '<tr><td class="sec" colspan="6">5. 총평</td></tr>'
+      + '<tr><td colspan="6" style="height:20mm; vertical-align:top"><span class="clip" style="height:19mm">' + esc(MON.sum) + '</span></td></tr>'
+      + '</tbody></table>'
+      + '<div class="foot">보고자 : ' + esc(d.reporter || (S.user && S.user.name) || '') + '　／　작성일 : ' + esc(today_()) + '</div>';
+  }
+
+  function monSend(){
+    if(!MON.d) return toast('먼저 [조회]를 눌러주세요.', true);
+    var mails = pickedMails();
+    if(!mails.length) return toast('받는 사람을 한 명 이상 고르세요.', true);
+    var btn = $('mSend'), old = btn.textContent;
+    btn.disabled = true; btn.textContent = 'PDF 만드는 중…';
+
+    pdfFrom($('a4mon')).then(function(pdf){
+      btn.textContent = '보내는 중…';
+      return apiPost({ mode:'pdfSend', kind:'월간보고',
+        title: MON.d.y + '년 ' + MON.d.m + '월' + (MON.d.co ? ' ' + MON.d.co : ''),
+        pdf:pdf, mails:mails.join(','), memo:MON.sum });
+    }).then(function(x){
+      btn.disabled = false; btn.textContent = old;
+      if(!x.ok) return toast(x.error, true);
+      toast(x.message);
+    }).catch(function(){
+      btn.disabled = false; btn.textContent = old;
+      toast('PDF 를 만들지 못했습니다. 잠시 뒤 다시 시도해 주세요.', true);
+    });
+  }
+
+  /* ============================================================
+   *  문자 수신자 (설정)
+   * ============================================================ */
+  var SMSP = [];
+
+  function loadSms(){
+    return apiGet({ mode:'smsList', token:S.token }).then(function(r){
+      if(!r.ok){ toast(r.error, true); return; }
+      SMSP = r.people;
+      drawSms();
+    });
+  }
+
+  function telFmt(t){
+    var v = String(t || '').replace(/[^0-9]/g, '');
+    if(v.length === 11) return v.slice(0,3) + '-' + v.slice(3,7) + '-' + v.slice(7);
+    if(v.length === 10) return v.slice(0,3) + '-' + v.slice(3,6) + '-' + v.slice(6);
+    return v;
+  }
+
+  function drawSms(){
+    $('smsCount').textContent = SMSP.length + '명';
+    $('smsTable').innerHTML =
+      '<thead><tr><th style="width:110px">이름</th><th style="width:150px">소속</th>'
+      + '<th style="width:150px">휴대폰</th><th style="width:80px">사용</th><th style="width:160px"></th></tr></thead><tbody>'
+      + (SMSP.length ? SMSP.map(function(p){
+          return '<tr><td><b>' + esc(p.nm) + '</b></td><td>' + esc(p.dept || '—') + '</td>'
+            + '<td class="code">' + esc(telFmt(p.tel)) + '</td>'
+            + '<td><span class="chip ' + (p.use === 'N' ? 'plain' : 'good') + '">' + (p.use === 'N' ? '중지' : '사용') + '</span></td>'
+            + '<td><button class="btn sm" data-smse="' + esc(p.tel) + '">수정</button> '
+            + '<button class="btn sm" data-smst="' + esc(p.tel) + '">시험</button> '
+            + '<button class="btn sm danger" data-smsd="' + esc(p.tel) + '">삭제</button></td></tr>';
+        }).join('') : '<tr><td colspan="5" class="emptyrow">등록된 문자 수신자가 없습니다.</td></tr>')
+      + '</tbody>';
+
+    bind($('smsTable'), 'data-smse', function(t){
+      openSmsDlg(SMSP.filter(function(x){ return x.tel === t; })[0]);
+    });
+    bind($('smsTable'), 'data-smst', function(t){
+      apiPost({ mode:'smsTest', tel:t }).then(function(r){
+        toast(r.ok ? r.message : r.error, !r.ok);
+      });
+    });
+    bind($('smsTable'), 'data-smsd', function(t){
+      var p = SMSP.filter(function(x){ return x.tel === t; })[0] || { nm:t };
+      confirmDlg('문자 수신자 삭제', esc(p.nm) + ' 님을 지울까요?', function(){
+        apiPost({ mode:'smsDelete', tel:t }).then(function(r){
+          if(!r.ok) return toast(r.error, true);
+          toast(r.message); loadSms();
+        });
+      });
+    });
+  }
+
+  function openSmsDlg(p){
+    p = p || {};
+    dlg(p.tel ? '문자 수신자 수정' : '문자 수신자 추가',
+      '<div class="formrow"><label>이름 *</label><input class="inp" id="sm_nm" value="' + esc(p.nm || '') + '"></div>'
+      + '<div class="formrow"><label>소속</label><input class="inp" id="sm_dept" value="' + esc(p.dept || '') + '"></div>'
+      + '<div class="formrow"><label>휴대폰 *</label><input class="inp" id="sm_tel" inputmode="numeric" placeholder="010-0000-0000" value="' + esc(telFmt(p.tel || '')) + '"></div>'
+      + '<div class="formrow"><label>사용</label><select class="inp" id="sm_use"><option value="Y"' + (p.use === 'N' ? '' : ' selected') + '>사용</option><option value="N"' + (p.use === 'N' ? ' selected' : '') + '>중지</option></select></div>',
+      function(close){
+        apiPost({ mode:'smsSave', nm:$('sm_nm').value, dept:$('sm_dept').value,
+          tel:$('sm_tel').value, use:$('sm_use').value, oldTel:p.tel || '' }).then(function(r){
+          if(!r.ok) return toast(r.error, true);
+          toast(r.message); close(); loadSms();
+        });
+      });
   }
 
   /* ============================================================
@@ -2414,7 +2784,7 @@ tr.clickable:hover td{background:var(--surface-2)}
   /* ============================================================
    *  이동
    * ============================================================ */
-  var TITLES = { home:'홈', settings:'설정', session:'교육 차수', detail:'차수 상세', result:'교육 결과 관리', report:'결과보고서' };
+  var TITLES = { home:'홈', settings:'설정', session:'교육 차수', detail:'차수 상세', result:'교육 결과 관리', report:'결과보고서', attend:'출석부', monthly:'월간 결과보고' };
   function go(name){
     Array.prototype.forEach.call(document.querySelectorAll('.screen'), function(s){
       s.classList.toggle('on', s.id === 's-' + name);
@@ -2426,6 +2796,7 @@ tr.clickable:hover td{background:var(--surface-2)}
     window.scrollTo({ top:0 });
     if(name === 'session' && !SES.loaded) loadSessions();
     if(name === 'result'){ if(!SES.loaded) loadSessions(); else drawRepPick(); }
+    if(name === 'monthly' && !$('mY').options.length) fillMonthly();
   }
   Array.prototype.forEach.call(document.querySelectorAll('.navbtn'), function(b){
     b.addEventListener('click', function(){ go(b.getAttribute('data-go')); });
@@ -2439,6 +2810,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       p.classList.toggle('on', p.id === 'p-' + k);
     });
     if(k === 'acct') loadUsers();
+    if(k === 'sms') loadSms();
   }
   Array.prototype.forEach.call(document.querySelectorAll('.setnav button'), function(b){
     b.addEventListener('click', function(){ openSetPane(b.getAttribute('data-set')); });
@@ -2453,6 +2825,11 @@ tr.clickable:hover td{background:var(--surface-2)}
 
   /* ---------- 교육 차수 ---------- */
   $('repBack').addEventListener('click', function(){ go('result'); });
+  $('attBack').addEventListener('click', function(){ go('result'); });
+  $('mGo').addEventListener('click', loadMonthly);
+  $('mPrint').addEventListener('click', function(){ if($('a4mon')) printEl($('a4mon')); else toast('먼저 [조회]를 눌러주세요.', true); });
+  $('mSend').addEventListener('click', monSend);
+  $('smsAdd').addEventListener('click', function(){ openSmsDlg(null); });
   $('repReload').addEventListener('click', loadSessions);
   $('sesAdd').addEventListener('click', function(){ openSessionDlg(null); });
   $('fGo').addEventListener('click', loadSessions);
