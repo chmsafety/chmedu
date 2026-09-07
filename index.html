@@ -1834,7 +1834,7 @@ tr.clickable:hover td{background:var(--surface-2)}
     $('login').hidden = true;
     $('app').hidden = true;
 
-    apiGet({ mode:'surveyForm', c:code }).then(function(r){
+    apiGet({ mode:'surveyForm', course:code }).then(function(r){
       if(!r.ok){
         $('stuCourse').textContent = '열 수 없는 QR입니다';
         $('stuSub').textContent = r.error || '';
