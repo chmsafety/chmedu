@@ -305,7 +305,7 @@ tr.clickable:hover td{background:var(--surface-2)}
 .repform{flex:0 0 360px; min-width:0}
 .reppaper{flex:1 1 auto; min-width:0; overflow:auto; padding-bottom:8px}
 @media (max-width:1300px){ .replay{display:block} .repform{width:auto} .reppaper{margin-top:16px} }
-.thumb{position:relative; border:1px solid var(--line); border-radius:var(--r); height:104px; display:flex; align-items:center; justify-content:center; overflow:hidden; background:var(--bg-2); cursor:pointer}
+.thumb{position:relative; border:1px solid var(--line); border-radius:var(--r); height:104px; display:flex; align-items:center; justify-content:center; overflow:hidden; background:var(--surface-2); cursor:pointer}
 .thumb img{width:100%; height:100%; object-fit:cover}
 .thumb span{font-size:12px; color:var(--ink-3)}
 .thumb .x{position:absolute; top:4px; right:4px; background:rgba(0,0,0,.55); color:#fff; border:0; border-radius:4px; font-size:11px; padding:2px 6px; cursor:pointer}
@@ -340,6 +340,34 @@ tr.clickable:hover td{background:var(--surface-2)}
 .a4 .note{margin-top:4mm; font-size:9.5pt; line-height:1.7}
 .a4 .mini td{font-size:8.6pt; padding:2.5px 4px}
 .a4 .kv2{width:100%; border-collapse:collapse; margin-bottom:3mm}
+
+/* ---------- 대시보드 ---------- */
+.mini-h{font-size:12px; color:var(--ink-3); font-weight:600; margin:6px 0 10px}
+.mini-h span{font-weight:400; margin-left:6px; font-size:11.5px}
+.mbars{display:flex; gap:6px; align-items:flex-end; height:132px}
+.mbar{flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; cursor:pointer}
+.mbar .col{width:100%; height:96px; display:flex; align-items:flex-end; border-radius:var(--r); background:var(--surface-2); overflow:hidden}
+.mbar .fillx{width:100%; background:var(--accent); border-radius:var(--r) var(--r) 0 0; transition:height .25s ease}
+.mbar .lb2{font-size:11px; color:var(--ink-3)}
+.mbar .n2{font-size:11.5px; font-weight:700; color:var(--ink-2)}
+.mbar:hover .fillx{filter:brightness(1.12)}
+.mbar.on .fillx{background:var(--accent-ink)}
+.mbar.zero .col{border:1px dashed var(--line)}
+
+/* ---------- 이수 도장 ---------- */
+.sgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(268px,1fr)); gap:12px}
+.scard{border:1px solid var(--line); border-radius:var(--r); background:var(--surface); padding:13px 14px}
+.scard.none{border-left:3px solid var(--crit)}
+.scard .hd{display:flex; align-items:baseline; gap:7px; margin-bottom:9px}
+.scard .nm{font-weight:700; font-size:13.5px}
+.scard .cnt{margin-left:auto; font-family:var(--font-d); font-size:20px; font-weight:800}
+.scard .cnt small{font-size:11px; font-weight:600; color:var(--ink-3); margin-left:2px}
+.stamps{display:flex; flex-wrap:wrap; gap:6px}
+.stamp{width:34px; height:34px; border-radius:50%; border:2px solid var(--accent); color:var(--accent);
+       display:flex; align-items:center; justify-content:center; font-size:11.5px; font-weight:700;
+       background:var(--accent-soft); cursor:pointer}
+.stamp:hover{filter:brightness(.95)}
+.stamp.empty{border:1.5px dashed var(--line); background:transparent; color:var(--ink-3); cursor:default; font-weight:400}
 
 @media print{
   body{background:#fff}
@@ -481,8 +509,10 @@ tr.clickable:hover td{background:var(--surface-2)}
     <button class="navbtn" data-go="session"><i>＋</i>교육 차수</button>
     <button class="navbtn" data-go="result"><i>◈</i>교육 결과 관리</button>
     <button class="navbtn" data-go="monthly"><i>▦</i>월간 결과보고</button>
+    <button class="navbtn" data-go="done"><i>◉</i>사업장 이수현황</button>
 
     <div class="rail-label">기준 정보</div>
+    <button class="navbtn" data-go="material"><i>▤</i>교육 자료</button>
     <button class="navbtn" data-go="settings"><i>⚙</i>설정</button>
 
     <div class="rail-foot" id="railFoot">—</div>
@@ -501,6 +531,35 @@ tr.clickable:hover td{background:var(--surface-2)}
 
       <!-- ---------- 홈 ---------- -->
       <section class="screen on" id="s-home">
+        <div class="panel">
+          <div class="panel-hd"><h2>교육 현황</h2>
+            <select class="inp" id="dY" style="width:106px; margin-left:8px"></select>
+            <span class="spacer"></span>
+            <span class="sub" id="dSub"></span>
+          </div>
+          <div class="stats">
+            <div class="stat"><span class="k">진행 차수</span><span class="v" id="dTotal">—</span><span class="d" id="dCo">—</span></div>
+            <div class="stat"><span class="k">교육 인원</span><span class="v" id="dPpl">—</span><span class="d">참석 기준</span></div>
+            <div class="stat"><span class="k">평균 평점</span><span class="v" id="dScore">—</span><span class="d" id="dAns">—</span></div>
+            <div class="stat"><span class="k">이수 사업장</span><span class="v" id="dSite">—</span><span class="d" id="dSiteD">—</span></div>
+          </div>
+          <div class="panel-bd" style="padding-top:4px">
+            <h3 class="mini-h">월별 운영 현황 <span>막대를 누르면 그 달 교육이 아래에 나옵니다</span></h3>
+            <div class="mbars" id="dBars"></div>
+          </div>
+        </div>
+
+        <div class="panel" id="dMonthPanel" hidden>
+          <div class="panel-hd"><h2 id="dMonthT">—</h2><span class="spacer"></span>
+            <button class="btn sm" id="dMonthX">닫기</button></div>
+          <div class="panel-bd tight"><div class="tscroll"><table id="dMonthTable" style="min-width:680px"></table></div></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-hd"><h2>최근 교육</h2><span class="sub">최근 8건</span></div>
+          <div class="panel-bd tight"><div class="tscroll"><table id="dRecent" style="min-width:680px"></table></div></div>
+        </div>
+
         <div class="panel">
           <div class="panel-hd"><h2>등록 현황</h2><span class="sub" id="homeSub"></span></div>
           <div class="stats">
@@ -690,6 +749,39 @@ tr.clickable:hover td{background:var(--surface-2)}
             <table id="repPick" style="min-width:680px"></table>
           </div></div>
         </div>
+      </section>
+
+      <!-- ---------- 사업장 이수현황 ---------- -->
+      <section class="screen" id="s-done">
+        <div class="panel"><div class="panel-bd">
+          <div class="row" style="gap:8px; align-items:center">
+            <select class="inp" id="cY" style="width:106px"></select>
+            <select class="inp" id="cCo" style="width:130px">
+              <option value="">전체 회사</option><option>CHM</option><option>CHMS</option>
+            </select>
+            <input class="inp" id="cQ" placeholder="사업장 검색" style="width:180px">
+            <button class="btn" id="cGo">조회</button>
+            <span class="spacer"></span>
+            <span class="sub" id="cSum">—</span>
+          </div>
+        </div></div>
+        <div id="doneBody"><div class="panel"><div class="panel-bd"><div class="soon">해를 고르고 [조회]를 눌러주세요.</div></div></div></div>
+      </section>
+
+      <!-- ---------- 교육 자료 ---------- -->
+      <section class="screen" id="s-material">
+        <div class="panel">
+          <div class="panel-hd"><h2>교육 자료</h2><span class="sub" id="matCount"></span>
+            <span class="spacer"></span>
+            <select class="inp" id="matCo" style="width:190px"></select>
+            <button class="btn sm primary" id="matAdd">자료 올리기</button>
+          </div>
+          <div class="panel-bd tight"><div class="tscroll"><table id="matTable" style="min-width:720px"></table></div></div>
+          <div class="panel-bd" style="padding-top:0">
+            <p class="hint">과정마다 강의안 PDF를 올려두면 차수 상세·결과보고서에서 바로 열어볼 수 있습니다. 한 파일 25MB까지, 「링크가 있는 사람은 보기」로 열립니다.</p>
+          </div>
+        </div>
+        <input type="file" id="matFile" accept="application/pdf,.pdf,.ppt,.pptx" hidden>
       </section>
 
       <!-- ---------- 출석부 ---------- -->
@@ -1005,12 +1097,15 @@ tr.clickable:hover td{background:var(--surface-2)}
       + esc(u.id || '') + ' · ' + (u.role === 'master' ? '마스터' : '일반') + '</span>';
     w.classList.toggle('temp', !!u.tempPw);
     if(u.tempPw) w.title = '초기 비밀번호를 쓰고 있습니다. 눌러서 바꿔주세요.';
-    $('railFoot').innerHTML = '5단계 · 출석부 · 월간 · 문자<br>' + esc(u.name || '');
+    $('railFoot').innerHTML = '6단계 · 대시보드 · 이수현황 · 자료<br>' + esc(u.name || '');
   }
 
   function drawHome(){
     var chm = S.sites.filter(function(s){ return s.co === 'CHM'; }).length;
     var chms = S.sites.length - chm;
+    $('dSite').innerHTML = '—';
+    $('dSiteD').textContent = '전체 ' + S.sites.length + '곳';
+    loadDash();
     $('hSites').innerHTML = S.sites.length + '<small>곳</small>';
     $('hSitesD').textContent = 'CHM ' + chm + ' · CHMS ' + chms;
     $('hCourses').innerHTML = S.courses.length + '<small>개</small>';
@@ -2589,6 +2684,230 @@ tr.clickable:hover td{background:var(--surface-2)}
   }
 
   /* ============================================================
+   *  교육 현황 대시보드 · 사업장 이수현황 · 교육 자료 — 6단계
+   * ============================================================ */
+
+  function fillYearSel(el, sel){
+    var y = new Date().getFullYear(), h = '';
+    for(var i = y + 1; i >= y - 3; i--) h += '<option' + (i === (sel || y) ? ' selected' : '') + '>' + i + '</option>';
+    el.innerHTML = h;
+  }
+
+  /* ---------- 대시보드 ---------- */
+  var DASH = { d:null, openM:0 };
+
+  function loadDash(){
+    if(!$('dY').options.length) fillYearSel($('dY'));
+    return apiGet({ mode:'dash', token:S.token, y:$('dY').value }).then(function(r){
+      if(!r.ok) return;
+      DASH.d = r;
+      drawDash();
+    });
+  }
+
+  function drawDash(){
+    var d = DASH.d, st = d.stat;
+    $('dSub').textContent = d.y + '년';
+    $('dTotal').innerHTML = st.total + '<small>차수</small>';
+    $('dCo').textContent = 'CHM ' + st.chm + ' · CHMS ' + st.chms;
+    $('dPpl').innerHTML = st.people + '<small>명</small>';
+    $('dScore').innerHTML = (st.avg ? st.avg.toFixed(1) : '—') + '<small>점</small>';
+    $('dAns').textContent = '설문 ' + st.answers + '명 응답';
+
+    $('dSite').innerHTML = (st.sitesDone || 0) + '<small>곳</small>';
+    $('dSiteD').textContent = '전체 ' + (st.sitesAll || S.sites.length || 0) + '곳 중';
+
+    var max = 0;
+    d.months.forEach(function(m){ if(m.n > max) max = m.n; });
+    $('dBars').innerHTML = d.months.map(function(m){
+      var h = (max && m.n) ? Math.max(5, Math.round(m.n / max * 96)) : 0;
+      return '<div class="mbar' + (m.n ? '' : ' zero') + (DASH.openM === m.m ? ' on' : '') + '" data-m="' + m.m + '">'
+        + '<span class="n2">' + (m.n || '') + '</span>'
+        + '<span class="col"><span class="fillx" style="height:' + h + 'px"></span></span>'
+        + '<span class="lb2">' + m.m + '</span></div>';
+    }).join('');
+    bind($('dBars'), 'data-m', openMonth);
+
+    $('dRecent').innerHTML = sesTableHtml(d.recent, '아직 등록된 교육이 없습니다.');
+    bind($('dRecent'), 'data-open', openDetail);
+  }
+
+  function sesTableHtml(list, empty){
+    return '<thead><tr><th style="width:96px">교육일자</th><th style="width:56px">회사</th>'
+      + '<th style="width:140px">사업장</th><th>과정</th><th style="width:84px">강사</th>'
+      + '<th class="num" style="width:56px">참석</th><th class="num" style="width:56px">평점</th>'
+      + '<th style="width:64px">상태</th></tr></thead><tbody>'
+      + (list.length ? list.map(function(s){
+          return '<tr class="clickable" data-open="' + esc(s.id) + '">'
+            + '<td class="code">' + esc(s.date) + '</td>'
+            + '<td><span class="chip ' + (s.co === 'CHMS' ? 'chms' : 'chm') + '">' + esc(s.co) + '</span></td>'
+            + '<td>' + esc(s.site) + '</td>'
+            + '<td><b>' + esc(s.courseNm) + '</b><br><span style="font-size:11.5px; color:var(--ink-3)">' + esc(s.kind || '') + '</span></td>'
+            + '<td>' + esc(s.teacher || '—') + '</td>'
+            + '<td class="num">' + esc(s.attend || 0) + '</td>'
+            + '<td class="num">' + (s.score ? esc(s.score) : '—') + '</td>'
+            + '<td><span class="chip ' + (STCHIP[s.state] || 'plain') + '">' + esc(s.state) + '</span></td></tr>';
+        }).join('') : '<tr><td colspan="8" class="emptyrow">' + esc(empty) + '</td></tr>')
+      + '</tbody>';
+  }
+
+  function openMonth(m){
+    DASH.openM = Number(m);
+    drawDash();
+    $('dMonthPanel').hidden = false;
+    $('dMonthT').textContent = DASH.d.y + '년 ' + m + '월';
+    $('dMonthTable').innerHTML = '<tbody><tr><td class="emptyrow">불러오는 중…</td></tr></tbody>';
+    apiGet({ mode:'monthSessions', token:S.token, y:DASH.d.y, m:m }).then(function(r){
+      if(!r.ok){ toast(r.error, true); return; }
+      $('dMonthTable').innerHTML = sesTableHtml(r.sessions, '그 달에는 교육이 없습니다.');
+      bind($('dMonthTable'), 'data-open', openDetail);
+    });
+  }
+
+  /* ---------- 사업장 이수현황 ---------- */
+  var DONE = { d:null };
+
+  function loadDone(){
+    $('doneBody').innerHTML = '<div class="panel"><div class="panel-bd"><div class="soon">불러오는 중…</div></div></div>';
+    return apiGet({ mode:'completion', token:S.token, y:$('cY').value, co:$('cCo').value }).then(function(r){
+      if(!r.ok){ toast(r.error, true); return; }
+      DONE.d = r;
+      drawDone();
+    });
+  }
+
+  function drawDone(){
+    var d = DONE.d, st = d.stat;
+    var q = $('cQ').value.trim();
+    var list = d.sites.filter(function(x){ return !q || x.nm.indexOf(q) >= 0; });
+
+    $('cSum').textContent = '총 ' + st.total + '회 · 사업장 평균 ' + st.avg.toFixed(1) + '회 · 미실시 ' + st.zero + '곳';
+
+    $('doneBody').innerHTML = '<div class="panel"><div class="panel-bd">'
+      + (list.length
+          ? '<div class="sgrid">' + list.map(function(x){
+              var stamps = x.stamps.map(function(s, i){
+                return '<span class="stamp" data-st="' + esc(x.code) + '|' + i + '" title="' + esc(s.date + ' ' + s.courseNm) + '">' + s.m + '월</span>';
+              }).join('');
+              for(var k = x.stamps.length; k < st.base; k++) stamps += '<span class="stamp empty">·</span>';
+              return '<div class="scard' + (x.n ? '' : ' none') + '">'
+                + '<div class="hd"><span class="chip ' + (x.co === 'CHMS' ? 'chms' : 'chm') + '">' + esc(x.co) + '</span>'
+                + '<span class="nm">' + esc(x.nm) + '</span>'
+                + '<span class="cnt">' + x.n + '<small>회</small></span></div>'
+                + '<div class="stamps">' + stamps + '</div>'
+                + (x.n ? '' : '<p class="hint" style="margin:9px 0 0">올해 실시한 교육이 없습니다.</p>')
+                + '</div>';
+            }).join('') + '</div>'
+          : '<div class="soon">찾는 사업장이 없습니다.</div>')
+      + '</div></div>';
+
+    bind($('doneBody'), 'data-st', function(v){
+      var p = v.split('|');
+      var site = DONE.d.sites.filter(function(x){ return x.code === p[0]; })[0];
+      if(!site) return;
+      stampDlg(site, site.stamps[Number(p[1])]);
+    });
+  }
+
+  function stampDlg(site, s){
+    if(!s) return;
+    infoDlg(site.co + ' · ' + site.nm,
+      '<dl class="kv">'
+      + '<dt>교육일자</dt><dd>' + esc(s.date) + '</dd>'
+      + '<dt>과정</dt><dd><b>' + esc(s.courseNm) + '</b></dd>'
+      + '<dt>교육구분</dt><dd>' + esc(s.kind || '—') + '</dd>'
+      + '<dt>강사</dt><dd>' + esc(s.teacher || '—') + '</dd>'
+      + '<dt>교육시간</dt><dd>' + esc(s.hrs === '' || s.hrs === undefined ? '—' : s.hrs + '시간') + '</dd>'
+      + '<dt>참석 / 대상</dt><dd><b>' + esc(s.attend || 0) + '명</b> / ' + esc(s.target === '' || s.target === undefined ? '—' : s.target) + '명</dd>'
+      + '<dt>평균 평점</dt><dd>' + (s.score ? esc(s.score) + ' / 5.0' : '—') + '</dd>'
+      + '<dt>상태</dt><dd><span class="chip ' + (STCHIP[s.state] || 'plain') + '">' + esc(s.state) + '</span></dd>'
+      + '</dl>', '차수 상세 보기', function(){ openDetail(s.id); });
+  }
+
+  /* ---------- 교육 자료 ---------- */
+  var MAT = { files:[], course:'' };
+
+  function loadMaterials(){
+    if(!$('matCo').options.length){
+      $('matCo').innerHTML = '<option value="">전체 과정</option>'
+        + S.courses.map(function(c){ return '<option value="' + esc(c.code) + '">' + esc(c.nm) + '</option>'; }).join('');
+    }
+    return apiGet({ mode:'materials', token:S.token }).then(function(r){
+      if(!r.ok){ toast(r.error, true); return; }
+      MAT.files = r.files;
+      drawMaterials();
+    });
+  }
+
+  function courseNm(code){
+    var c = S.courses.filter(function(x){ return x.code === code; })[0];
+    return c ? c.nm : code;
+  }
+  function kb(n){
+    if(!n) return '—';
+    return n >= 1048576 ? (n/1048576).toFixed(1) + 'MB' : Math.round(n/1024) + 'KB';
+  }
+
+  function drawMaterials(){
+    var co = $('matCo').value;
+    var list = MAT.files.filter(function(f){ return !co || f.course === co; });
+    $('matCount').textContent = list.length + '건';
+
+    $('matTable').innerHTML =
+      '<thead><tr><th style="width:180px">과정</th><th>파일명</th><th style="width:80px">크기</th>'
+      + '<th style="width:150px">올린 사람</th><th style="width:120px">올린 날</th><th style="width:150px"></th></tr></thead><tbody>'
+      + (list.length ? list.map(function(f){
+          return '<tr><td>' + esc(courseNm(f.course)) + '</td>'
+            + '<td><b>' + esc(f.name) + '</b></td>'
+            + '<td>' + esc(kb(f.size)) + '</td>'
+            + '<td>' + esc(f.by || '—') + '</td>'
+            + '<td class="code">' + esc((f.at || '').slice(0,10)) + '</td>'
+            + '<td><a class="btn sm" href="' + esc(f.url) + '" target="_blank" rel="noopener">열기</a> '
+            + (S.user && S.user.role === 'master' ? '<button class="btn sm danger" data-matd="' + esc(f.id) + '">삭제</button>' : '')
+            + '</td></tr>';
+        }).join('') : '<tr><td colspan="6" class="emptyrow">올린 자료가 없습니다.</td></tr>')
+      + '</tbody>';
+
+    bind($('matTable'), 'data-matd', function(id){
+      var f = MAT.files.filter(function(x){ return x.id === id; })[0] || {};
+      confirmDlg('자료 삭제', esc(f.name || '') + ' 을(를) 지울까요?<br><span style="color:var(--ink-3)">Drive 에서도 휴지통으로 갑니다.</span>', function(){
+        apiPost({ mode:'materialDelete', id:id }).then(function(r){
+          if(!r.ok) return toast(r.error, true);
+          toast(r.message); loadMaterials();
+        });
+      });
+    });
+  }
+
+  function pickMaterial(){
+    if(!$('matCo').value) return toast('먼저 위에서 과정을 골라주세요. (전체 과정으로는 올릴 수 없습니다)', true);
+    $('matFile').click();
+  }
+
+  function uploadMaterial(file){
+    var course = $('matCo').value;      /* 고를 때가 아니라 올릴 때의 값을 쓴다 */
+    if(!course) return toast('먼저 위에서 과정을 골라주세요.', true);
+    if(file.size > 25 * 1024 * 1024) return toast('25MB 아래 파일만 올릴 수 있습니다.', true);
+    var btn = $('matAdd'), old = btn.textContent;
+    btn.disabled = true; btn.textContent = '올리는 중…';
+
+    var fr = new FileReader();
+    fr.onload = function(){
+      apiPost({ mode:'materialSave', course:course, name:file.name, data:fr.result })
+        .then(function(r){
+          btn.disabled = false; btn.textContent = old;
+          if(!r.ok) return toast(r.error, true);
+          toast(r.message); loadMaterials();
+        });
+    };
+    fr.onerror = function(){
+      btn.disabled = false; btn.textContent = old;
+      toast('파일을 읽지 못했습니다.', true);
+    };
+    fr.readAsDataURL(file);
+  }
+
+  /* ============================================================
    *  교육생 화면 (QR)
    * ============================================================ */
   var STU = { code:'', course:null, questions:[], sites:[], co:'', site:'', sessionId:'', answers:{} };
@@ -2784,7 +3103,7 @@ tr.clickable:hover td{background:var(--surface-2)}
   /* ============================================================
    *  이동
    * ============================================================ */
-  var TITLES = { home:'홈', settings:'설정', session:'교육 차수', detail:'차수 상세', result:'교육 결과 관리', report:'결과보고서', attend:'출석부', monthly:'월간 결과보고' };
+  var TITLES = { home:'홈', settings:'설정', session:'교육 차수', detail:'차수 상세', result:'교육 결과 관리', report:'결과보고서', attend:'출석부', monthly:'월간 결과보고', done:'사업장 이수현황', material:'교육 자료' };
   function go(name){
     Array.prototype.forEach.call(document.querySelectorAll('.screen'), function(s){
       s.classList.toggle('on', s.id === 's-' + name);
@@ -2797,6 +3116,8 @@ tr.clickable:hover td{background:var(--surface-2)}
     if(name === 'session' && !SES.loaded) loadSessions();
     if(name === 'result'){ if(!SES.loaded) loadSessions(); else drawRepPick(); }
     if(name === 'monthly' && !$('mY').options.length) fillMonthly();
+    if(name === 'done'){ if(!$('cY').options.length){ fillYearSel($('cY')); loadDone(); } }
+    if(name === 'material') loadMaterials();
   }
   Array.prototype.forEach.call(document.querySelectorAll('.navbtn'), function(b){
     b.addEventListener('click', function(){ go(b.getAttribute('data-go')); });
@@ -2830,6 +3151,20 @@ tr.clickable:hover td{background:var(--surface-2)}
   $('mPrint').addEventListener('click', function(){ if($('a4mon')) printEl($('a4mon')); else toast('먼저 [조회]를 눌러주세요.', true); });
   $('mSend').addEventListener('click', monSend);
   $('smsAdd').addEventListener('click', function(){ openSmsDlg(null); });
+
+  /* ---------- 6단계 ---------- */
+  $('dY').addEventListener('change', function(){ DASH.openM = 0; $('dMonthPanel').hidden = true; loadDash(); });
+  $('dMonthX').addEventListener('click', function(){ $('dMonthPanel').hidden = true; DASH.openM = 0; drawDash(); });
+  $('cGo').addEventListener('click', loadDone);
+  ['cY','cCo'].forEach(function(id){ $(id).addEventListener('change', loadDone); });
+  $('cQ').addEventListener('input', function(){ if(DONE.d) drawDone(); });
+  $('matCo').addEventListener('change', function(){ if(MAT.files.length || true) drawMaterials(); });
+  $('matAdd').addEventListener('click', pickMaterial);
+  $('matFile').addEventListener('change', function(){
+    var f = this.files && this.files[0];
+    this.value = '';
+    if(f) uploadMaterial(f);
+  });
   $('repReload').addEventListener('click', loadSessions);
   $('sesAdd').addEventListener('click', function(){ openSessionDlg(null); });
   $('fGo').addEventListener('click', loadSessions);
