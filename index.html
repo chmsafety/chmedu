@@ -529,15 +529,19 @@ tr.clickable:hover td{background:var(--surface-2)}
   <nav class="rail">
     <div class="brand"><b>교육관리 시스템</b><span>CHM · CHMS</span></div>
 
-    <div class="rail-label">교육 운영</div>
+    <div class="rail-label">현황</div>
     <button class="navbtn on" data-go="home"><i>▤</i>대시보드</button>
-    <button class="navbtn" data-go="session"><i>＋</i>교육 차수</button>
-    <button class="navbtn" data-go="result"><i>◈</i>교육 결과 관리</button>
-    <button class="navbtn" data-go="monthly"><i>▦</i>월간 결과보고</button>
-    <button class="navbtn" data-go="done"><i>◉</i>사업장 이수현황</button>
 
-    <div class="rail-label">기준 정보</div>
-    <button class="navbtn" data-go="material"><i>▤</i>교육 자료</button>
+    <div class="rail-label">결과관리</div>
+    <button class="navbtn" data-go="result"><i>◈</i>보고서(차수별)</button>
+    <button class="navbtn" data-go="monthly"><i>▦</i>보고서(월간)</button>
+    <button class="navbtn" data-go="done"><i>◉</i>사업장별 이수현황</button>
+
+    <div class="rail-label">등록관리</div>
+    <button class="navbtn" data-go="course"><i>▤</i>과정 등록</button>
+    <button class="navbtn" data-go="session"><i>＋</i>차수 등록</button>
+
+    <div class="rail-label">설정</div>
     <button class="navbtn" data-go="settings"><i>⚙</i>설정</button>
 
     <div class="rail-foot" id="railFoot">—</div>
@@ -593,8 +597,7 @@ tr.clickable:hover td{background:var(--surface-2)}
           <div class="setgrid">
             <div class="setnav">
               <button class="on" data-set="site">사업장 관리</button>
-              <button data-set="course">과정 관리</button>
-              <button data-set="form">설문 문항 관리</button>
+              <button data-set="form">설문 관리</button>
               <button data-set="admin">관리자(메일) 관리</button>
               <button data-set="sms">문자 수신자</button>
               <button data-set="noti">알림 설정</button>
@@ -615,32 +618,25 @@ tr.clickable:hover td{background:var(--surface-2)}
                 <p class="hint">교육 이력이 있는 사업장은 삭제하면 <b>사용중지</b>로 바뀝니다. 과거 기록이 사라지지 않게 하기 위해서입니다.</p>
               </div>
 
-              <!-- 과정 -->
-              <div class="setpane" id="p-course">
-                <div class="panel-hd" style="padding:0 0 12px">
-                  <h2>과정 관리</h2><span class="sub" id="courseCount"></span>
-                  <span class="spacer"></span>
-                  <button class="btn sm primary" id="courseAdd">과정 추가</button>
-                </div>
-                <div class="tscroll"><table id="courseTable" style="min-width:860px"></table></div>
-                <p class="hint">「교육 내용」이 결과보고서의 <b>1. 교육 내용</b>으로 그대로 들어갑니다. 여기서 한 번 잘 써두면 그 과정으로 여는 교육은 매번 자동으로 채워집니다.</p>
-              </div>
-
-              <!-- 설문 문항 -->
+              <!-- 설문 -->
               <div class="setpane" id="p-form">
                 <div class="panel-hd" style="padding:0 0 12px">
-                  <h2>설문 문항 관리</h2><span class="sub">과정마다 다르게 쓸 수 있습니다</span>
+                  <h2>설문 관리</h2><span class="sub">설문지를 만들어 두고 과정에서 골라 씁니다</span>
                   <span class="spacer"></span>
                   <button class="btn sm" id="qAdd">문항 추가</button>
                   <button class="btn sm primary" id="qSave">저장</button>
                 </div>
-                <div class="formrow" style="max-width:560px"><label>대상</label><select class="inp" id="qCourse"></select></div>
-                <div class="row" style="margin:2px 0 14px">
-                  <span class="chip plain" id="qState">—</span>
-                  <button class="btn sm" id="qReset">공통 문항으로 되돌리기</button>
+                <div class="formrow" style="max-width:620px"><label>설문지</label>
+                  <div class="row" style="gap:6px; flex-wrap:nowrap">
+                    <select class="inp" id="qForm" style="min-width:220px"></select>
+                    <button class="btn sm" id="qNew">새 설문지</button>
+                    <button class="btn sm" id="qRename">이름 변경</button>
+                    <button class="btn sm danger" id="qDel">삭제</button>
+                  </div>
                 </div>
+                <div class="row" style="margin:2px 0 14px"><span class="chip plain" id="qState">—</span></div>
                 <div class="tscroll"><table id="qTable" style="min-width:640px"></table></div>
-                <p class="hint">처음에는 모든 과정이 <b>공통 문항</b>을 씁니다. 어느 과정의 문항을 고쳐 저장하면 그 과정만 따로 갈라져 나오고, 나머지 과정과 공통 문항은 그대로입니다. 5점 척도만 평균 평점에 반영됩니다.</p>
+                <p class="hint">설문지 하나를 여러 과정이 같이 쓸 수 있습니다. 여기서 문항을 고치면 그 설문지를 쓰는 과정이 모두 함께 바뀝니다. 5점 척도만 평균 평점에 반영됩니다. 이미 받은 응답은 그대로 남습니다.</p>
               </div>
 
               <!-- 관리자 -->
@@ -692,6 +688,14 @@ tr.clickable:hover td{background:var(--surface-2)}
               </div>
 
             </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-hd"><h2>서버 연결</h2><span class="sub">배포한 버전을 여기서 확인합니다</span></div>
+          <div class="panel-bd">
+            <div class="formrow"><label>웹앱 주소</label><div class="code" id="apiUrl" style="word-break:break-all"></div></div>
+            <div class="formrow"><label>서버 버전</label><div id="apiVer">확인 중…</div></div>
           </div>
         </div>
       </section>
@@ -771,17 +775,28 @@ tr.clickable:hover td{background:var(--surface-2)}
         <div id="doneBody"><div class="panel"><div class="panel-bd"><div class="soon">해를 고르고 [조회]를 눌러주세요.</div></div></div></div>
       </section>
 
-      <!-- ---------- 교육 자료 ---------- -->
-      <section class="screen" id="s-material">
+      <!-- ---------- 과정 등록 ---------- -->
+      <section class="screen" id="s-course">
         <div class="panel">
-          <div class="panel-hd"><h2>교육 자료</h2><span class="sub" id="matCount"></span>
+          <div class="panel-hd"><h2>과정 등록</h2><span class="sub" id="courseCount"></span>
             <span class="spacer"></span>
-            <select class="inp" id="matCo" style="width:190px"></select>
+            <button class="btn sm primary" id="courseAdd">과정 추가</button>
+          </div>
+          <div class="panel-bd tight"><div class="tscroll"><table id="courseTable" style="min-width:920px"></table></div></div>
+          <div class="panel-bd" style="padding-top:0">
+            <p class="hint">「교육 내용」이 결과보고서의 <b>1. 교육 내용</b>으로 그대로 들어갑니다. 한 번 잘 써두면 그 과정으로 여는 교육은 매번 자동으로 채워집니다. 설문지는 <b>설정 › 설문 관리</b>에서 만들어 두고 여기서 고릅니다.</p>
+          </div>
+        </div>
+
+        <div class="panel" id="matPanel" hidden>
+          <div class="panel-hd"><h2 id="matTitle">교육 자료</h2><span class="sub" id="matCount"></span>
+            <span class="spacer"></span>
             <button class="btn sm primary" id="matAdd">자료 올리기</button>
+            <button class="iconbtn" id="matX" title="닫기">✕</button>
           </div>
           <div class="panel-bd tight"><div class="tscroll"><table id="matTable" style="min-width:720px"></table></div></div>
           <div class="panel-bd" style="padding-top:0">
-            <p class="hint">과정마다 강의안 PDF를 올려두면 차수 상세·결과보고서에서 바로 열어볼 수 있습니다. 한 파일 25MB까지, 「링크가 있는 사람은 보기」로 열립니다.</p>
+            <p class="hint">강의안 PDF를 올려두면 차수 상세·결과보고서에서 바로 열어볼 수 있습니다. 한 파일 25MB까지, 「링크가 있는 사람은 보기」로 열립니다.</p>
           </div>
         </div>
         <input type="file" id="matFile" accept="application/pdf,.pdf,.ppt,.pptx" hidden>
@@ -789,7 +804,7 @@ tr.clickable:hover td{background:var(--surface-2)}
 
       <!-- ---------- 출석부 ---------- -->
       <section class="screen" id="s-attend">
-        <button class="backlink" id="attBack">← 교육 결과 관리</button>
+        <button class="backlink" id="attBack">← 보고서(차수별)</button>
         <div id="attBody"><div class="panel"><div class="panel-bd"><div class="soon">불러오는 중…</div></div></div></div>
       </section>
 
@@ -813,7 +828,7 @@ tr.clickable:hover td{background:var(--surface-2)}
 
       <!-- ---------- 결과보고서 작성 ---------- -->
       <section class="screen" id="s-report">
-        <button class="backlink" id="repBack">← 교육 결과 관리</button>
+        <button class="backlink" id="repBack">← 보고서(차수별)</button>
         <div id="repBody"><div class="panel"><div class="panel-bd"><div class="soon">불러오는 중…</div></div></div></div>
       </section>
 
@@ -1050,7 +1065,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       S.sites = res.sites || [];
       S.courses = res.courses || [];
       S.admins = res.admins || [];
-      S.forms = res.forms || { common:[], own:{} };
+      S.forms = res.forms || [];
       S.config = res.config || {};
       qDraft = null;
       renderAll();
@@ -1096,7 +1111,19 @@ tr.clickable:hover td{background:var(--surface-2)}
       + esc(u.id || '') + ' · ' + (u.role === 'master' ? '마스터' : '일반') + '</span>';
     w.classList.toggle('temp', !!u.tempPw);
     if(u.tempPw) w.title = '초기 비밀번호를 쓰고 있습니다. 눌러서 바꿔주세요.';
-    $('railFoot').innerHTML = '6단계 · 대시보드 · 이수현황 · 자료<br>' + esc(u.name || '');
+    $('railFoot').innerHTML = '7단계 · 결과관리 · 등록관리<br>' + esc(u.name || '');
+  }
+
+  /* 설정 맨 아래 — 웹앱 주소와 서버 버전 (배포 확인용) */
+  var SRVDONE = false;
+  function showServerInfo(){
+    if(!$('apiUrl')) return;
+    $('apiUrl').textContent = API;
+    if(SRVDONE) return;
+    SRVDONE = true;
+    apiGet({ mode:'ping' }).then(function(r){
+      $('apiVer').textContent = (r && r.ok) ? (r.version + ' · 정상') : '연결 안 됨';
+    }).catch(function(){ $('apiVer').textContent = '연결 안 됨'; });
   }
 
   function drawHome(){
@@ -1174,24 +1201,31 @@ tr.clickable:hover td{background:var(--surface-2)}
   }
 
   /* ---------- 과정 ---------- */
+  function formById(id){
+    var l = (S.forms || []).filter(function(f){ return f.id === id; });
+    return l[0] || null;
+  }
+
   function drawCourses(){
     $('courseCount').textContent = S.courses.length + '개';
     $('courseTable').innerHTML =
-      '<thead><tr><th style="width:56px">코드</th><th style="width:150px">과정명</th><th style="width:104px">교육 구분</th>'
-      + '<th class="num" style="width:60px">기본시간</th><th class="num" style="width:60px">연간필수</th>'
+      '<thead><tr><th style="width:56px">코드</th><th style="width:160px">과정명</th><th style="width:104px">교육 구분</th>'
+      + '<th class="num" style="width:60px">기본시간</th>'
       + '<th>교육 내용 <span style="font-weight:400; text-transform:none">— 결과보고서에 자동 입력</span></th>'
-      + '<th style="width:92px">설문 양식</th><th style="width:74px">QR</th><th style="width:120px"></th></tr></thead><tbody>'
+      + '<th style="width:130px">설문지</th><th style="width:80px">자료</th><th style="width:74px">QR</th><th style="width:120px"></th></tr></thead><tbody>'
       + (S.courses.length ? S.courses.map(function(c){
-          var own = S.forms.own && S.forms.own[c.code];
+          var f = formById(c.fm);
+          var nmat = MAT.files.filter(function(x){ return x.course === c.code; }).length;
           return '<tr><td class="code">' + esc(c.code) + '</td>'
             + '<td><b>' + esc(c.nm) + '</b></td>'
             + '<td style="font-size:11.5px; color:var(--ink-2)">' + esc(c.kind) + '</td>'
             + '<td class="num">' + (c.hrs === '' ? '—' : esc(c.hrs) + 'h') + '</td>'
-            + '<td class="num">' + (c.req === '' ? '—' : esc(c.req) + '회') + '</td>'
             + '<td class="cbody">' + esc(c.body || '—') + '</td>'
-            + '<td style="white-space:nowrap; font-size:12px">'
-            +   (own ? '<span class="chip warn">전용 ' + own.length + '</span>' : '<span class="chip plain">공통 ' + (S.forms.common||[]).length + '</span>')
+            + '<td style="font-size:12px">'
+            +   (f ? '<span class="chip plain">' + esc(f.nm) + ' · ' + f.qs.length + '문항</span>'
+                   : '<span class="chip warn">설문지 없음</span>')
             + '</td>'
+            + '<td><button class="btn sm" data-mat="' + esc(c.code) + '">' + (nmat ? nmat + '건' : '올리기') + '</button></td>'
             + '<td><button class="btn sm" data-qr="' + esc(c.code) + '">QR 보기</button></td>'
             + '<td class="acts"><button class="btn sm" data-edit="' + esc(c.code) + '">수정</button>'
             + '<button class="btn sm danger" data-del="' + esc(c.code) + '">삭제</button></td></tr>';
@@ -1199,6 +1233,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       + '</tbody>';
 
     bind($('courseTable'), 'data-qr', openCourseQr);
+    bind($('courseTable'), 'data-mat', openCourseMat);
     bind($('courseTable'), 'data-edit', function(code){
       openCourseDlg(S.courses.filter(function(c){ return c.code === code; })[0]);
     });
@@ -1223,13 +1258,19 @@ tr.clickable:hover td{background:var(--surface-2)}
       + kinds.map(function(k){ return '<option' + (c.kind === k ? ' selected' : '') + '>' + k + '</option>'; }).join('')
       + '</select></div>'
       + '<div class="formrow"><label>기본 교육시간</label><input class="inp" id="d_hrs" value="' + esc(c.hrs === undefined ? '' : c.hrs) + '" placeholder="시간 단위 (예: 3)"></div>'
-      + '<div class="formrow"><label>연간 필수 횟수</label><input class="inp" id="d_req" value="' + esc(c.req === undefined ? '' : c.req) + '" placeholder="비워두면 없음"></div>'
-      + '<div class="formrow"><label>교육 내용</label><textarea class="inp" id="d_body" rows="6" placeholder="결과보고서 「1. 교육 내용」에 그대로 들어갑니다">' + esc(c.body || '') + '</textarea></div>',
+      + '<div class="formrow"><label>설문지</label><select class="inp" id="d_fm">'
+      + (S.forms || []).map(function(f){
+          return '<option value="' + esc(f.id) + '"' + (c.fm === f.id ? ' selected' : '') + '>' + esc(f.nm) + ' — ' + f.qs.length + '문항</option>';
+        }).join('')
+      + '</select></div>'
+      + '<div class="formrow"><label>교육 내용</label><textarea class="inp" id="d_body" rows="6" placeholder="결과보고서 「1. 교육 내용」에 그대로 들어갑니다">' + esc(c.body || '') + '</textarea></div>'
+      + '<p class="hint">설문지는 <b>설정 › 설문 관리</b>에서 만듭니다. 여기서 고른 설문지가 이 과정의 QR 설문에 그대로 나옵니다.'
+      + (c.code ? ' 자료 올리기는 과정 목록의 <b>자료</b> 칸에서 합니다.' : ' 교육 자료는 저장한 뒤 과정 목록의 <b>자료</b> 칸에서 올립니다.') + '</p>',
       function(close){
         apiPost({
           mode:'courseSave', code:c.code || '',
           nm:$('d_nm').value, kind:$('d_kind').value,
-          hrs:$('d_hrs').value, req:$('d_req').value, body:$('d_body').value
+          hrs:$('d_hrs').value, fm:($('d_fm') ? $('d_fm').value : ''), body:$('d_body').value
         }).then(function(r){
           if(!r.ok) return toast(r.error, true);
           toast(r.message); close(); loadMasters();
@@ -1237,37 +1278,48 @@ tr.clickable:hover td{background:var(--surface-2)}
       });
   }
 
-  /* ---------- 설문 문항 ---------- */
-  function drawQCourseList(){
-    var cur = $('qCourse').value;
-    $('qCourse').innerHTML = '<option value="">공통 문항 (모든 과정 기본)</option>'
-      + S.courses.map(function(c){
-          var own = S.forms.own && S.forms.own[c.code];
-          return '<option value="' + esc(c.code) + '">' + esc(c.nm) + (own ? ' — 전용' : '') + '</option>';
-        }).join('');
-    if(cur !== null && cur !== undefined) $('qCourse').value = cur;
+  /* ---------- 과정별 교육 자료 ---------- */
+  function openCourseMat(code){
+    MAT.course = code;
+    $('matPanel').hidden = false;
+    $('matTitle').textContent = courseNm(code) + ' — 교육 자료';
+    drawMaterials();
+    $('matPanel').scrollIntoView({ behavior:'smooth', block:'nearest' });
   }
 
-  function qBase(code){
-    var list = code ? ((S.forms.own && S.forms.own[code]) || S.forms.common) : S.forms.common;
-    return (list || []).map(function(q){ return { t:q.t, k:q.k }; });
+  /* ---------- 설문 (양식 단위) ---------- */
+  function drawQCourseList(){
+    var cur = $('qForm').value;
+    var list = S.forms || [];
+    $('qForm').innerHTML = list.map(function(f){
+      return '<option value="' + esc(f.id) + '">' + esc(f.nm) + ' (' + f.qs.length + '문항)</option>';
+    }).join('') || '<option value="">등록된 설문지가 없습니다</option>';
+    if(cur && list.filter(function(f){ return f.id === cur; }).length) $('qForm').value = cur;
+  }
+
+  function qBase(id){
+    var f = formById(id);
+    return ((f && f.qs) || []).map(function(q){ return { t:q.t, k:q.k }; });
   }
 
   function qCur(){
-    var code = $('qCourse').value;
-    if(qDraft === null || qDraftCode !== code){ qDraft = qBase(code); qDraftCode = code; }
+    var id = $('qForm').value;
+    if(qDraft === null || qDraftCode !== id){ qDraft = qBase(id); qDraftCode = id; }
     return qDraft;
   }
 
-  function drawQTable(){
-    var code = $('qCourse').value;
-    var list = qCur();
-    var own = !!(code && S.forms.own && S.forms.own[code]);
+  function qUsedBy(id){
+    return S.courses.filter(function(c){ return c.fm === id; });
+  }
 
-    $('qState').textContent = !code ? '공통 문항 (' + list.length + '문항)'
-      : (own ? '이 과정 전용 (' + list.length + '문항)' : '공통 문항을 쓰는 중 (' + list.length + '문항)');
-    $('qState').className = 'chip ' + (own ? 'warn' : 'plain');
-    $('qReset').disabled = !own;
+  function drawQTable(){
+    var id = $('qForm').value;
+    var list = qCur();
+    var used = qUsedBy(id);
+
+    $('qState').textContent = list.length + '문항 · 쓰는 과정 ' + used.length + '개'
+      + (used.length ? ' (' + used.map(function(c){ return c.nm; }).join(', ') + ')' : '');
+    $('qState').className = 'chip ' + (used.length ? 'plain' : 'warn');
 
     $('qTable').innerHTML =
       '<thead><tr><th class="num" style="width:50px">순서</th><th>문항</th>'
@@ -1303,21 +1355,64 @@ tr.clickable:hover td{background:var(--surface-2)}
     });
   }
 
-  $('qCourse').addEventListener('change', function(){ qDraft = null; drawQTable(); });
+  $('qForm').addEventListener('change', function(){ qDraft = null; drawQTable(); });
   $('qAdd').addEventListener('click', function(){ qCur().push({ t:'', k:'척도' }); drawQTable(); });
-  $('qSave').addEventListener('click', function(){
-    apiPost({ mode:'formSave', course:$('qCourse').value, questions:qCur() }).then(function(r){
+
+  function qSaveForm(id, nm, questions, after){
+    apiPost({ mode:'formSave', id:id || '', nm:nm, questions:questions }).then(function(r){
       if(!r.ok) return toast(r.error, true);
       toast(r.message);
       qDraft = null;
-      loadMasters();
+      loadMasters().then(function(){
+        if(r.id){ $('qForm').value = r.id; qDraft = null; drawQTable(); }
+        if(after) after(r);
+      });
     });
+  }
+
+  $('qSave').addEventListener('click', function(){
+    var f = formById($('qForm').value);
+    if(!f) return toast('먼저 설문지를 만들어 주세요.', true);
+    var list = qCur().filter(function(q){ return String(q.t || '').trim() !== ''; });
+    if(!list.length) return toast('문항을 한 개 이상 적어주세요.', true);
+    qSaveForm(f.id, f.nm, list);
   });
-  $('qReset').addEventListener('click', function(){
-    var code = $('qCourse').value;
-    confirmDlg('공통 문항으로 되돌리기', '이 과정 전용 문항을 지우고 공통 문항을 쓰게 합니다.<br><span style="color:var(--ink-3)">이미 받은 응답은 그대로 남습니다.</span>',
+
+  $('qNew').addEventListener('click', function(){
+    dlg('새 설문지', '<div class="formrow"><label>설문지 이름 *</label><input class="inp" id="d_fnm" placeholder="예) 안전보건교육 설문지"></div>'
+      + '<p class="hint">만들면 기본 문항 5개(척도 4 + 주관식 1)로 시작합니다. 문항은 바로 고칠 수 있습니다.</p>',
+      function(close){
+        var nm = $('d_fnm').value.trim();
+        if(!nm) return toast('이름을 적어주세요.', true);
+        qSaveForm('', nm, [
+          { t:'강의 내용이 도움이 되었습니까?', k:'척도' },
+          { t:'강사의 설명은 이해하기 쉬웠습니까?', k:'척도' },
+          { t:'교육 시간은 적절했습니까?', k:'척도' },
+          { t:'교육 환경(장소·자료)은 만족스러웠습니까?', k:'척도' },
+          { t:'건의하고 싶은 점이 있으면 적어주세요.', k:'주관식' }
+        ], close);
+      });
+  });
+
+  $('qRename').addEventListener('click', function(){
+    var f = formById($('qForm').value);
+    if(!f) return;
+    dlg('설문지 이름 변경', '<div class="formrow"><label>설문지 이름 *</label><input class="inp" id="d_fnm" value="' + esc(f.nm) + '"></div>',
+      function(close){
+        var nm = $('d_fnm').value.trim();
+        if(!nm) return toast('이름을 적어주세요.', true);
+        qSaveForm(f.id, nm, qCur(), close);
+      });
+  });
+
+  $('qDel').addEventListener('click', function(){
+    var f = formById($('qForm').value);
+    if(!f) return;
+    var used = qUsedBy(f.id);
+    if(used.length) return toast('이 설문지를 쓰는 과정이 있습니다: ' + used.map(function(c){ return c.nm; }).join(', '), true);
+    confirmDlg('설문지 삭제', esc(f.nm) + ' 을(를) 지울까요?<br><span style="color:var(--ink-3)">이미 받은 응답은 그대로 남습니다.</span>',
       function(){
-        apiPost({ mode:'formReset', course:code }).then(function(r){
+        apiPost({ mode:'formDelete', id:f.id }).then(function(r){
           if(!r.ok) return toast(r.error, true);
           toast(r.message); qDraft = null; loadMasters();
         });
@@ -1906,6 +2001,11 @@ tr.clickable:hover td{background:var(--surface-2)}
     dlg(s.id ? ('차수 수정 — ' + esc(s.id)) : '교육 차수 등록',
       '<div class="formrow"><label>사업장 *</label><select class="inp" id="d_site">' + siteOpt + '</select></div>'
       + '<div class="formrow"><label>교육 과정 *</label><select class="inp" id="d_course">' + courseOpt + '</select></div>'
+      + '<div class="formrow"><label>교육 구분</label><select class="inp" id="d_kind">'
+      + ['본사교육','사업장 정기교육','사업장 수시교육'].map(function(k){
+          return '<option' + (s.kind === k ? ' selected' : '') + '>' + k + '</option>';
+        }).join('')
+      + '</select></div>'
       + '<div class="formrow"><label>교육일자 *</label><input class="inp" id="d_date" type="date" value="' + esc(d) + '"></div>'
       + '<div class="formrow"><label>시간</label><div class="row" style="flex-wrap:nowrap">'
       +   '<input class="inp" id="d_start" type="time" value="' + esc(s.start || '') + '">'
@@ -1920,11 +2020,12 @@ tr.clickable:hover td{background:var(--surface-2)}
             + '</select></div>'
           : '')
       + '<div class="formrow"><label>교육 내용</label><textarea class="inp" id="d_body" rows="5" placeholder="비워두면 과정에 적어둔 내용이 그대로 들어갑니다">' + esc(s.body || '') + '</textarea></div>'
-      + '<p class="hint">교육시간은 시작·종료 시각으로 자동 계산됩니다. 비워두면 과정의 기본시간을 씁니다.</p>',
+      + '<p class="hint">교육 구분과 교육 내용은 과정에 적어둔 것이 자동으로 들어옵니다. 이 차수만 다르게 했으면 여기서 고치세요. 교육시간은 시작·종료 시각으로 자동 계산됩니다.</p>',
       function(close){
         apiPost({
           mode:'sessionSave', id:s.id || '',
           siteCode:$('d_site').value, course:$('d_course').value,
+          kind:$('d_kind').value,
           date:$('d_date').value, start:$('d_start').value, end:$('d_end').value,
           teacher:$('d_teacher').value, place:$('d_place').value,
           target:$('d_target').value, body:$('d_body').value,
@@ -1937,6 +2038,18 @@ tr.clickable:hover td{background:var(--surface-2)}
           loadSessions();
         });
       });
+
+    /* 과정을 고르면 교육 구분·교육 내용이 따라 들어온다 (고쳐 쓸 수 있다) */
+    function syncFromCourse(force){
+      var c = S.courses.filter(function(x){ return x.code === $('d_course').value; })[0];
+      if(!c) return;
+      if(force || !s.kind) $('d_kind').value = c.kind || $('d_kind').value;
+      if(force || !String($('d_body').value).trim()) $('d_body').value = c.body || '';
+    }
+    if($('d_course')){
+      $('d_course').addEventListener('change', function(){ syncFromCourse(true); });
+      if(!s.id) syncFromCourse(false);
+    }
   }
 
   /* ---------- 차수 상세 ---------- */
@@ -2015,7 +2128,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       + '</div>'
       + '<div class="panel-bd">'
       + (r.people.length
-          ? '<p class="hint" style="margin:0">서명과 직군·근속년수는 <b>출석부</b>에서 볼 수 있습니다. 누가 어떤 점수를 줬는지는 저장하지 않습니다.</p>'
+          ? '<p class="hint" style="margin:0">성명과 서명은 <b>출석부</b>에서 볼 수 있습니다. 직군·근속년수는 통계용으로만 모으고 출석부에는 넣지 않습니다. 누가 어떤 점수를 줬는지는 저장하지 않습니다.</p>'
           : '<div class="soon">아직 출석한 사람이 없습니다.</div>')
       + '</div></div>';
 
@@ -2433,10 +2546,8 @@ tr.clickable:hover td{background:var(--surface-2)}
       var p = d.people[i];
       rows += '<tr>'
         + '<td class="ctr" style="width:8%">' + (i+1) + '</td>'
-        + '<td style="width:19%">' + (p ? esc(p.name || '') : '') + '</td>'
-        + '<td class="ctr" style="width:15%">' + (p ? esc(p.job || '') : '') + '</td>'
-        + '<td class="ctr" style="width:26%">' + (p ? esc(p.ten || '') : '') + '</td>'
-        + '<td class="sg" style="width:32%">' + (p && p.sign ? '<img src="' + p.sign + '" alt="">' : '') + '</td>'
+        + '<td style="width:30%">' + (p ? esc(p.name || '') : '') + '</td>'
+        + '<td class="sg" style="width:62%">' + (p && p.sign ? '<img src="' + p.sign + '" alt="">' : '') + '</td>'
         + '</tr>';
     }
 
@@ -2453,7 +2564,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       + '</tbody></table>'
 
       + '<table><tbody>'
-      + '<tr><td class="lb ctr">번호</td><td class="lb ctr">성　명</td><td class="lb ctr">직　군</td><td class="lb ctr">근속년수</td><td class="lb ctr">서　명</td></tr>'
+      + '<tr><td class="lb ctr">번호</td><td class="lb ctr">성　명</td><td class="lb ctr">서　명</td></tr>'
       + rows
       + '</tbody></table>'
       + '<div class="note">위와 같이 교육을 실시하고 참석자가 서명하였음을 확인합니다.</div>'
@@ -2792,7 +2903,6 @@ tr.clickable:hover td{background:var(--surface-2)}
               var stamps = x.stamps.map(function(s, i){
                 return '<span class="stamp" data-st="' + esc(x.code) + '|' + i + '" title="' + esc(s.date + ' ' + s.courseNm) + '">' + s.m + '월</span>';
               }).join('');
-              for(var k = x.stamps.length; k < st.base; k++) stamps += '<span class="stamp empty">·</span>';
               return '<div class="scard' + (x.n ? '' : ' none') + '">'
                 + '<div class="hd"><span class="chip ' + (x.co === 'CHMS' ? 'chms' : 'chm') + '">' + esc(x.co) + '</span>'
                 + '<span class="nm">' + esc(x.nm) + '</span>'
@@ -2828,17 +2938,14 @@ tr.clickable:hover td{background:var(--surface-2)}
   }
 
   /* ---------- 교육 자료 ---------- */
-  var MAT = { files:[], course:'' };
+  var MAT = { files:[], course:'', loaded:false };
 
   function loadMaterials(){
-    if(!$('matCo').options.length){
-      $('matCo').innerHTML = '<option value="">전체 과정</option>'
-        + S.courses.map(function(c){ return '<option value="' + esc(c.code) + '">' + esc(c.nm) + '</option>'; }).join('');
-    }
     return apiGet({ mode:'materials', token:S.token }).then(function(r){
       if(!r.ok){ toast(r.error, true); return; }
       MAT.files = r.files;
-      drawMaterials();
+      drawCourses();
+      if(!$('matPanel').hidden) drawMaterials();
     });
   }
 
@@ -2852,23 +2959,22 @@ tr.clickable:hover td{background:var(--surface-2)}
   }
 
   function drawMaterials(){
-    var co = $('matCo').value;
-    var list = MAT.files.filter(function(f){ return !co || f.course === co; });
+    var co = MAT.course;
+    var list = MAT.files.filter(function(f){ return f.course === co; });
     $('matCount').textContent = list.length + '건';
 
     $('matTable').innerHTML =
-      '<thead><tr><th style="width:180px">과정</th><th>파일명</th><th style="width:80px">크기</th>'
+      '<thead><tr><th>파일명</th><th style="width:80px">크기</th>'
       + '<th style="width:150px">올린 사람</th><th style="width:120px">올린 날</th><th style="width:150px"></th></tr></thead><tbody>'
       + (list.length ? list.map(function(f){
-          return '<tr><td>' + esc(courseNm(f.course)) + '</td>'
-            + '<td><b>' + esc(f.name) + '</b></td>'
+          return '<tr><td><b>' + esc(f.name) + '</b></td>'
             + '<td>' + esc(kb(f.size)) + '</td>'
             + '<td>' + esc(f.by || '—') + '</td>'
             + '<td class="code">' + esc((f.at || '').slice(0,10)) + '</td>'
             + '<td><a class="btn sm" href="' + esc(f.url) + '" target="_blank" rel="noopener">열기</a> '
             + (S.user && S.user.role === 'master' ? '<button class="btn sm danger" data-matd="' + esc(f.id) + '">삭제</button>' : '')
             + '</td></tr>';
-        }).join('') : '<tr><td colspan="6" class="emptyrow">올린 자료가 없습니다.</td></tr>')
+        }).join('') : '<tr><td colspan="5" class="emptyrow">올린 자료가 없습니다. [자료 올리기]로 강의안 PDF를 넣어주세요.</td></tr>')
       + '</tbody>';
 
     bind($('matTable'), 'data-matd', function(id){
@@ -2883,13 +2989,13 @@ tr.clickable:hover td{background:var(--surface-2)}
   }
 
   function pickMaterial(){
-    if(!$('matCo').value) return toast('먼저 위에서 과정을 골라주세요. (전체 과정으로는 올릴 수 없습니다)', true);
+    if(!MAT.course) return toast('먼저 과정 목록에서 「자료」를 눌러주세요.', true);
     $('matFile').click();
   }
 
   function uploadMaterial(file){
-    var course = $('matCo').value;      /* 고를 때가 아니라 올릴 때의 값을 쓴다 */
-    if(!course) return toast('먼저 위에서 과정을 골라주세요.', true);
+    var course = MAT.course;            /* 고를 때가 아니라 올릴 때의 값을 쓴다 */
+    if(!course) return toast('먼저 과정 목록에서 「자료」를 눌러주세요.', true);
     if(file.size > 25 * 1024 * 1024) return toast('25MB 아래 파일만 올릴 수 있습니다.', true);
     var btn = $('matAdd'), old = btn.textContent;
     btn.disabled = true; btn.textContent = '올리는 중…';
@@ -3113,7 +3219,7 @@ tr.clickable:hover td{background:var(--surface-2)}
   /* ============================================================
    *  이동
    * ============================================================ */
-  var TITLES = { home:'대시보드', settings:'설정', session:'교육 차수', detail:'차수 상세', result:'교육 결과 관리', report:'결과보고서', attend:'출석부', monthly:'월간 결과보고', done:'사업장 이수현황', material:'교육 자료' };
+  var TITLES = { home:'대시보드', settings:'설정', course:'과정 등록', session:'차수 등록', detail:'차수 상세', result:'보고서(차수별)', report:'결과보고서', attend:'출석부', monthly:'보고서(월간)', done:'사업장별 이수현황' };
   function go(name){
     Array.prototype.forEach.call(document.querySelectorAll('.screen'), function(s){
       s.classList.toggle('on', s.id === 's-' + name);
@@ -3127,7 +3233,8 @@ tr.clickable:hover td{background:var(--surface-2)}
     if(name === 'result'){ if(!SES.loaded) loadSessions(); else drawRepPick(); }
     if(name === 'monthly' && !$('mY').options.length) fillMonthly();
     if(name === 'done'){ if(!$('cY').options.length){ fillYearSel($('cY')); loadDone(); } }
-    if(name === 'material') loadMaterials();
+    if(name === 'course' && !MAT.loaded){ MAT.loaded = true; loadMaterials(); }
+    if(name === 'settings') showServerInfo();
   }
   Array.prototype.forEach.call(document.querySelectorAll('.navbtn'), function(b){
     b.addEventListener('click', function(){ go(b.getAttribute('data-go')); });
@@ -3168,7 +3275,7 @@ tr.clickable:hover td{background:var(--surface-2)}
   $('cGo').addEventListener('click', loadDone);
   ['cY','cCo'].forEach(function(id){ $(id).addEventListener('change', loadDone); });
   $('cQ').addEventListener('input', function(){ if(DONE.d) drawDone(); });
-  $('matCo').addEventListener('change', function(){ if(MAT.files.length || true) drawMaterials(); });
+  $('matX').addEventListener('click', function(){ $('matPanel').hidden = true; MAT.course = ''; });
   $('matAdd').addEventListener('click', pickMaterial);
   $('matFile').addEventListener('change', function(){
     var f = this.files && this.files[0];
