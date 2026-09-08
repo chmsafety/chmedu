@@ -341,6 +341,16 @@ tr.clickable:hover td{background:var(--surface-2)}
 .a4 .mini td{font-size:8.6pt; padding:2.5px 4px}
 .a4 .kv2{width:100%; border-collapse:collapse; margin-bottom:3mm}
 
+/* ---------- 교육생 화면 ---------- */
+.bigsel{height:auto; padding:6px; font-size:16px; line-height:2.1}
+.bigsel option{padding:9px 10px; border-radius:6px}
+.pickrow{display:flex; gap:8px; flex-wrap:wrap}
+.pickrow.col{flex-direction:column}
+.pickrow button{flex:1 1 auto; min-height:50px; padding:12px 14px; font-size:15px; font-weight:600;
+  border:1.5px solid var(--line); border-radius:var(--r); background:var(--surface); color:var(--ink); cursor:pointer}
+.pickrow button.on{border-color:var(--accent); background:var(--accent-soft); color:var(--accent-ink)}
+.pickrow button:active{transform:scale(.99)}
+
 /* ---------- 대시보드 ---------- */
 .mini-h{font-size:12px; color:var(--ink-3); font-weight:600; margin:6px 0 10px}
 .mini-h span{font-weight:400; margin-left:6px; font-size:11.5px}
@@ -396,6 +406,14 @@ tr.clickable:hover td{background:var(--surface-2)}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#7C33D6">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="CHMEdu">
+<link rel="icon" href="chmedu-favicon-32.png" sizes="32x32">
+<link rel="icon" href="chmedu-192.png" sizes="192x192">
+<link rel="apple-touch-icon" href="chmedu-apple-180.png">
 </head>
 <body>
 
@@ -407,31 +425,38 @@ tr.clickable:hover td{background:var(--surface-2)}
   <div class="stuhd"><b id="stuCourse">교육 설문</b><span id="stuSub">CHM · CHMS 안전보건교육</span></div>
   <div class="stu">
 
-    <!-- 1. 회사 · 사업장 -->
+    <!-- 1. 사업장 -->
     <section class="stustep on" id="stu1">
       <div class="stucard">
-        <h2>회사를 골라주세요</h2>
-        <div class="bigbtns">
-          <button class="bigbtn" data-co="CHM">CHM</button>
-          <button class="bigbtn chms" data-co="CHMS">CHMS</button>
-        </div>
-      </div>
-      <div class="stucard" id="stuSiteCard" hidden>
         <h2>사업장을 골라주세요</h2>
-        <div class="sub" id="stuSiteSub"></div>
-        <input class="inp" id="stuSiteQ" placeholder="사업장 이름 검색" autocomplete="off">
-        <div class="sitelist" id="stuSiteList"></div>
+        <div class="sub">근무하시는 사업장을 목록에서 고르시면 됩니다.</div>
+        <select class="inp bigsel" id="stuSiteSel" size="10"></select>
+        <input class="inp" id="stuSiteQ" placeholder="사업장 이름 검색" autocomplete="off" style="margin-top:10px">
+        <button class="btn primary stubtn" id="stuGo1" style="margin-top:12px" disabled>다음</button>
       </div>
     </section>
 
-    <!-- 2. 이름 · 서명 -->
+    <!-- 2. 직군 · 근속 · 서명 -->
     <section class="stustep" id="stu2">
       <div class="stucard">
         <h2>출석 확인</h2>
         <div class="sub" id="stuWhere"></div>
-        <div class="field"><label for="stuName">성명 *</label><input class="inp" id="stuName" autocomplete="name"></div>
-        <div class="field"><label for="stuDept">소속 <span style="color:var(--ink-3)">(선택)</span></label><input class="inp" id="stuDept" autocomplete="organization"></div>
-        <div class="field"><label for="stuPos">직책 <span style="color:var(--ink-3)">(선택)</span></label><input class="inp" id="stuPos"></div>
+        <div class="field"><label for="stuName">성명 *</label><input class="inp" id="stuName" autocomplete="name" placeholder="본인 이름"></div>
+        <div class="field"><label>직군 *</label>
+          <div class="pickrow" id="stuJob">
+            <button type="button" data-job="시설">시설</button>
+            <button type="button" data-job="보안/안내">보안 · 안내</button>
+            <button type="button" data-job="미화">미화</button>
+          </div>
+        </div>
+        <div class="field"><label>근속년수 *</label>
+          <div class="pickrow col" id="stuTen">
+            <button type="button" data-ten="1년 미만">1년 미만</button>
+            <button type="button" data-ten="1년 이상 ~ 3년 미만">1년 이상 ~ 3년 미만</button>
+            <button type="button" data-ten="3년 이상 ~ 5년 미만">3년 이상 ~ 5년 미만</button>
+            <button type="button" data-ten="5년 이상">5년 이상</button>
+          </div>
+        </div>
         <div class="field" style="margin-top:14px">
           <label>서명 * <span style="color:var(--ink-3)">— 손가락으로 직접 써주세요</span></label>
           <canvas class="signpad" id="signPad"></canvas>
@@ -2040,23 +2065,22 @@ tr.clickable:hover td{background:var(--surface-2)}
       + '</div></div>';
 
     var people =
-      '<div class="panel"><div class="panel-hd"><h2>참석자</h2><span class="sub">' + r.people.length + '명 · QR 서명</span></div>'
-      + '<div class="panel-bd tight"><div class="tscroll"><table style="min-width:520px">'
-      + '<thead><tr><th style="width:40px" class="num">#</th><th style="width:110px">성명</th><th style="width:120px">소속</th>'
-      + '<th style="width:90px">직책</th><th style="width:70px">서명</th><th style="width:90px">수집</th></tr></thead><tbody>'
-      + (r.people.length ? r.people.map(function(p, i){
-          return '<tr><td class="num">' + (i+1) + '</td><td><b>' + esc(p.name) + '</b></td>'
-            + '<td>' + esc(p.dept || '—') + '</td><td>' + esc(p.pos || '—') + '</td>'
-            + '<td>' + (p.sign ? '<span class="chip good">있음</span>' : '<span class="chip warn">없음</span>') + '</td>'
-            + '<td style="font-size:12px; color:var(--ink-3)">' + esc(p.via || '—') + '</td></tr>';
-        }).join('') : '<tr><td colspan="6" class="emptyrow">아직 출석한 사람이 없습니다.</td></tr>')
-      + '</tbody></table></div></div></div>';
+      '<div class="panel"><div class="panel-hd"><h2>참석자</h2><span class="sub">' + r.people.length + '명 · QR 서명</span>'
+      + '<span class="spacer"></span>'
+      + (s.state === '취소' ? '' : '<button class="btn sm" id="detAtt2">출석부 보기</button>')
+      + '</div>'
+      + '<div class="panel-bd">'
+      + (r.people.length
+          ? '<p class="hint" style="margin:0">서명과 직군·근속년수는 <b>출석부</b>에서 볼 수 있습니다. 누가 어떤 점수를 줬는지는 저장하지 않습니다.</p>'
+          : '<div class="soon">아직 출석한 사람이 없습니다.</div>')
+      + '</div></div>';
 
     $('detBody').innerHTML = head + survey + people;
 
     if($('detEdit')) $('detEdit').addEventListener('click', function(){ openSessionDlg(s); });
     if($('detRep')) $('detRep').addEventListener('click', function(){ openReport(s.id); });
     if($('detAtt')) $('detAtt').addEventListener('click', function(){ openAttend(s.id); });
+    if($('detAtt2')) $('detAtt2').addEventListener('click', function(){ openAttend(s.id); });
     if($('detDel')) $('detDel').addEventListener('click', function(){
       confirmDlg('차수 취소', esc(s.date) + ' ' + esc(s.site) + ' 교육을 취소할까요?<br><span style="color:var(--ink-3)">기록은 지우지 않고 상태만 「취소」로 바꿉니다.</span>',
         function(){
@@ -2464,11 +2488,11 @@ tr.clickable:hover td{background:var(--surface-2)}
     for(var i = 0; i < n; i++){
       var p = d.people[i];
       rows += '<tr>'
-        + '<td class="ctr" style="width:9%">' + (i+1) + '</td>'
-        + '<td style="width:22%">' + (p ? esc(p.name) : '') + '</td>'
-        + '<td style="width:24%">' + (p ? esc(p.dept || '') : '') + '</td>'
-        + '<td style="width:20%">' + (p ? esc(p.pos || '') : '') + '</td>'
-        + '<td class="sg" style="width:25%">' + (p && p.sign ? '<img src="' + p.sign + '" alt="">' : '') + '</td>'
+        + '<td class="ctr" style="width:8%">' + (i+1) + '</td>'
+        + '<td style="width:19%">' + (p ? esc(p.name || '') : '') + '</td>'
+        + '<td class="ctr" style="width:15%">' + (p ? esc(p.job || '') : '') + '</td>'
+        + '<td class="ctr" style="width:26%">' + (p ? esc(p.ten || '') : '') + '</td>'
+        + '<td class="sg" style="width:32%">' + (p && p.sign ? '<img src="' + p.sign + '" alt="">' : '') + '</td>'
         + '</tr>';
     }
 
@@ -2485,7 +2509,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       + '</tbody></table>'
 
       + '<table><tbody>'
-      + '<tr><td class="lb ctr">번호</td><td class="lb ctr">성　명</td><td class="lb ctr">소　속</td><td class="lb ctr">직　책</td><td class="lb ctr">서　명</td></tr>'
+      + '<tr><td class="lb ctr">번호</td><td class="lb ctr">성　명</td><td class="lb ctr">직　군</td><td class="lb ctr">근속년수</td><td class="lb ctr">서　명</td></tr>'
       + rows
       + '</tbody></table>'
       + '<div class="note">위와 같이 교육을 실시하고 참석자가 서명하였음을 확인합니다.</div>'
@@ -2945,7 +2969,7 @@ tr.clickable:hover td{background:var(--surface-2)}
   /* ============================================================
    *  교육생 화면 (QR)
    * ============================================================ */
-  var STU = { code:'', course:null, questions:[], sites:[], co:'', site:'', sessionId:'', answers:{} };
+  var STU = { code:'', course:null, questions:[], sites:[], co:'', site:'', job:'', ten:'', sessionId:'', answers:{} };
 
   function stuStep(id){
     Array.prototype.forEach.call(document.querySelectorAll('.stustep'), function(s){
@@ -2973,6 +2997,7 @@ tr.clickable:hover td{background:var(--surface-2)}
         return;
       }
       STU.course = r.course; STU.questions = r.questions; STU.sites = r.sites;
+      drawStuSites();
       $('stuCourse').textContent = r.course.nm;
       $('stuSub').textContent = r.course.kind + ' · 출석과 설문을 한 번에 받습니다';
       initSign();
@@ -2981,19 +3006,23 @@ tr.clickable:hover td{background:var(--surface-2)}
 
   function drawStuSites(){
     var q = $('stuSiteQ').value.trim();
-    var list = STU.sites.filter(function(s){
-      return s.co === STU.co && (!q || s.nm.indexOf(q) >= 0);
+    var list = STU.sites.filter(function(s){ return !q || s.nm.indexOf(q) >= 0; });
+    var co = '', h = '';
+    list.forEach(function(s){
+      if(s.co !== co){ if(co) h += '</optgroup>'; h += '<optgroup label="' + esc(s.co) + '">'; co = s.co; }
+      h += '<option value="' + esc(s.co + '|' + s.nm) + '"'
+        + (STU.co + '|' + STU.site === s.co + '|' + s.nm ? ' selected' : '') + '>' + esc(s.nm) + '</option>';
     });
-    $('stuSiteList').innerHTML = list.length
-      ? list.map(function(s){
-          return '<button data-site="' + esc(s.nm) + '"' + (STU.site === s.nm ? ' class="on"' : '') + '>' + esc(s.nm) + '</button>';
-        }).join('')
-      : '<button disabled style="color:var(--ink-3)">찾는 사업장이 없습니다</button>';
-    bind($('stuSiteList'), 'data-site', function(nm){
-      STU.site = nm;
-      $('stuWhere').textContent = STU.co + ' · ' + nm + ' — ' + STU.course.nm;
-      stuStep('stu2');
-    });
+    if(co) h += '</optgroup>';
+    $('stuSiteSel').innerHTML = h || '<option disabled>찾는 사업장이 없습니다</option>';
+    syncStuSite();
+  }
+
+  function syncStuSite(){
+    var v = $('stuSiteSel').value || '';
+    var p = v.split('|');
+    STU.co = p[0] || ''; STU.site = p[1] || '';
+    $('stuGo1').disabled = !STU.site;
   }
 
   /* ---------- 서명 ---------- */
@@ -3025,7 +3054,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       var p = pos(e); signCtx.lineTo(p.x, p.y); signCtx.stroke();
     });
     ['pointerup','pointercancel','pointerleave'].forEach(function(ev){
-      c.addEventListener(ev, function(){ signOn = false; });
+      c.addEventListener(ev, function(){ if(signOn && signUsed) stuErr('stuMsg2', ''); signOn = false; });
     });
     $('signClear').addEventListener('click', function(){
       signCtx.fillStyle = '#fff';
@@ -3038,14 +3067,16 @@ tr.clickable:hover td{background:var(--surface-2)}
     stuErr('stuMsg2', '');
     var name = $('stuName').value.trim();
     if(name.length < 2) return stuErr('stuMsg2', '성명을 입력해 주세요.');
+    if(!STU.job) return stuErr('stuMsg2', '직군을 골라 주세요.');
+    if(!STU.ten) return stuErr('stuMsg2', '근속년수를 골라 주세요.');
     if(!signUsed) return stuErr('stuMsg2', '서명을 남겨 주세요.');
 
     var btn = $('stuGo2'), old = btn.textContent;
     btn.disabled = true; btn.textContent = '보내는 중…';
 
     apiPost({
-      mode:'attend', c:STU.code, co:STU.co, site:STU.site,
-      name:name, dept:$('stuDept').value.trim(), pos:$('stuPos').value.trim(),
+      mode:'attend', c:STU.code, course:STU.code, co:STU.co, site:STU.site,
+      name:name, job:STU.job, tenure:STU.ten,
       sign:$('signPad').toDataURL('image/png'),
       id:sessionId || ''
     }).then(function(r){
@@ -3210,19 +3241,28 @@ tr.clickable:hover td{background:var(--surface-2)}
   $('detBack').addEventListener('click', function(){ go('session'); });
 
   /* ---------- 교육생 화면 ---------- */
-  bind($('stu1'), 'data-co', function(co){
-    STU.co = co; STU.site = '';
-    Array.prototype.forEach.call($('stu1').querySelectorAll('[data-co]'), function(b){
-      b.classList.toggle('on', b.getAttribute('data-co') === co);
-    });
-    $('stuSiteCard').hidden = false;
-    $('stuSiteSub').textContent = co + ' 사업장 '
-      + STU.sites.filter(function(s){ return s.co === co; }).length + '곳';
-    $('stuSiteQ').value = '';
-    drawStuSites();
-    $('stuSiteQ').focus();
-  });
+  $('stuSiteSel').addEventListener('change', syncStuSite);
+  $('stuSiteSel').addEventListener('dblclick', function(){ if(STU.site) $('stuGo1').click(); });
   $('stuSiteQ').addEventListener('input', drawStuSites);
+  $('stuGo1').addEventListener('click', function(){
+    if(!STU.site) return;
+    $('stuWhere').textContent = STU.co + ' · ' + STU.site + ' — ' + STU.course.nm;
+    stuStep('stu2');
+  });
+  bind($('stuJob'), 'data-job', function(v){
+    STU.job = v;
+    Array.prototype.forEach.call($('stuJob').children, function(b){
+      b.classList.toggle('on', b.getAttribute('data-job') === v);
+    });
+    stuErr('stuMsg2', '');
+  });
+  bind($('stuTen'), 'data-ten', function(v){
+    STU.ten = v;
+    Array.prototype.forEach.call($('stuTen').children, function(b){
+      b.classList.toggle('on', b.getAttribute('data-ten') === v);
+    });
+    stuErr('stuMsg2', '');
+  });
   $('stuGo2').addEventListener('click', function(){ submitAttend(''); });
   $('stuBack1').addEventListener('click', function(){ stuStep('stu1'); });
   $('stuGo3').addEventListener('click', submitSurvey);
@@ -3257,6 +3297,59 @@ tr.clickable:hover td{background:var(--surface-2)}
   } else {
     warmUp();
     showLogin();
+  }
+})();
+</script>
+<script>
+/* CHMEdu 앱 설치 · 서비스 워커 */
+(function(){
+  var standalone=false;
+  try{ standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true; }catch(e){}
+  /* QR 로 들어온 교육생 화면에는 설치 버튼을 띄우지 않는다 (제출 버튼을 가림) */
+  var student=/[?&]c=/.test(location.search);
+  var prompt=null, chip=null;
+
+  function makeChip(){
+    if(chip||standalone||student)return;
+    chip=document.createElement('button');
+    chip.textContent='앱으로 설치';
+    chip.setAttribute('aria-label','CHMEdu 앱으로 설치');
+    chip.style.cssText='position:fixed;right:16px;bottom:16px;z-index:9999;border:0;'
+      +'background:#7C33D6;color:#fff;font:500 13px/1 system-ui,-apple-system,sans-serif;'
+      +'padding:11px 16px;border-radius:999px;box-shadow:0 6px 20px rgba(90,30,170,.35);cursor:pointer';
+    chip.onclick=async function(){
+      if(prompt){ prompt.prompt(); try{ await prompt.userChoice; }catch(e){} prompt=null; hideChip(); return; }
+      alert('브라우저 메뉴에서 설치할 수 있습니다.\n\n'
+        +'· 안드로이드 Chrome : 오른쪽 위 ⋮ → 앱 설치\n'
+        +'· 삼성 인터넷 : 아래 ≡ → 현재 페이지 추가 → 홈 화면\n'
+        +'· 아이폰 Safari : 아래 공유 → 홈 화면에 추가\n'
+        +'· PC Chrome : 주소창 오른쪽 설치 아이콘');
+    };
+    document.body.appendChild(chip);
+  }
+  function hideChip(){ if(chip){ chip.remove(); chip=null; } }
+
+  addEventListener('beforeinstallprompt',function(e){ e.preventDefault(); prompt=e; makeChip(); });
+  addEventListener('appinstalled',function(){ prompt=null; hideChip(); });
+  if(!standalone) addEventListener('load',function(){ setTimeout(makeChip,1200); });
+
+  if('serviceWorker' in navigator && (location.protocol==='https:'||/^(localhost|127\.0\.0\.1)$/.test(location.hostname))){
+    addEventListener('load',function(){
+      navigator.serviceWorker.register('sw.js').then(function(reg){
+        reg.addEventListener('updatefound',function(){
+          var w=reg.installing; if(!w)return;
+          w.addEventListener('statechange',function(){
+            if(w.state==='installed'&&navigator.serviceWorker.controller&&reg.waiting){
+              reg.waiting.postMessage('skip');
+            }
+          });
+        });
+      }).catch(function(){});
+      var reloading=false;
+      navigator.serviceWorker.addEventListener('controllerchange',function(){
+        if(reloading)return; reloading=true; location.reload();
+      });
+    });
   }
 })();
 </script>
