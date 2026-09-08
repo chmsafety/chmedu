@@ -530,7 +530,7 @@ tr.clickable:hover td{background:var(--surface-2)}
     <div class="brand"><b>교육관리 시스템</b><span>CHM · CHMS</span></div>
 
     <div class="rail-label">교육 운영</div>
-    <button class="navbtn on" data-go="home"><i>▤</i>홈</button>
+    <button class="navbtn on" data-go="home"><i>▤</i>대시보드</button>
     <button class="navbtn" data-go="session"><i>＋</i>교육 차수</button>
     <button class="navbtn" data-go="result"><i>◈</i>교육 결과 관리</button>
     <button class="navbtn" data-go="monthly"><i>▦</i>월간 결과보고</button>
@@ -545,7 +545,7 @@ tr.clickable:hover td{background:var(--surface-2)}
 
   <div class="main">
     <header class="topbar">
-      <h1 id="ttl">홈</h1>
+      <h1 id="ttl">대시보드</h1>
       <span class="spacer"></span>
       <button class="whoami" id="whoami" title="내 계정">—</button>
       <button class="btn sm" id="btnReload">새로고침</button>
@@ -554,7 +554,7 @@ tr.clickable:hover td{background:var(--surface-2)}
 
     <div class="wrap">
 
-      <!-- ---------- 홈 ---------- -->
+      <!-- ---------- 대시보드 ---------- -->
       <section class="screen on" id="s-home">
         <div class="panel">
           <div class="panel-hd"><h2>교육 현황</h2>
@@ -585,28 +585,6 @@ tr.clickable:hover td{background:var(--surface-2)}
           <div class="panel-bd tight"><div class="tscroll"><table id="dRecent" style="min-width:680px"></table></div></div>
         </div>
 
-        <div class="panel">
-          <div class="panel-hd"><h2>등록 현황</h2><span class="sub" id="homeSub"></span></div>
-          <div class="stats">
-            <div class="stat"><span class="k">사업장</span><span class="v" id="hSites">—</span><span class="d" id="hSitesD">—</span></div>
-            <div class="stat"><span class="k">교육 과정</span><span class="v" id="hCourses">—</span><span class="d">설문 QR은 과정마다 하나</span></div>
-            <div class="stat"><span class="k">설문 문항</span><span class="v" id="hForms">—</span><span class="d" id="hFormsD">공통 문항</span></div>
-            <div class="stat"><span class="k">메일 수신자</span><span class="v" id="hAdmins">—</span><span class="d" id="hAdminsD">결과보고서·출석부</span></div>
-          </div>
-        </div>
-
-        <div class="panel">
-          <div class="panel-hd"><h2>준비 상태</h2><span class="sub">설정이 다 채워져야 교육 등록을 시작할 수 있습니다</span></div>
-          <div class="panel-bd tight"><div class="tscroll"><table id="readyTable"></table></div></div>
-        </div>
-
-        <div class="panel">
-          <div class="panel-hd"><h2>서버 연결</h2></div>
-          <div class="panel-bd">
-            <div class="formrow"><label>웹앱 주소</label><div class="code" id="apiUrl" style="word-break:break-all"></div></div>
-            <div class="formrow"><label>서버 버전</label><div id="apiVer">확인 중…</div></div>
-          </div>
-        </div>
       </section>
 
       <!-- ---------- 설정 ---------- -->
@@ -1092,12 +1070,8 @@ tr.clickable:hover td{background:var(--surface-2)}
 
   function start(){
     showApp();
-    $('apiUrl').textContent = API;
     drawWho();
     applyCache();          /* 먼저 지난 내용을 보여주고, 아래에서 새로 받아 덮어쓴다 */
-    apiGet({ mode:'ping' }).then(function(r){
-      $('apiVer').textContent = r.ok ? (r.version + ' · 정상') : '연결 안 됨';
-    });
     return loadMasters().then(function(){ loadUsers(); });
   }
 
@@ -1126,39 +1100,9 @@ tr.clickable:hover td{background:var(--surface-2)}
   }
 
   function drawHome(){
-    var chm = S.sites.filter(function(s){ return s.co === 'CHM'; }).length;
-    var chms = S.sites.length - chm;
     $('dSite').innerHTML = '—';
     $('dSiteD').textContent = '전체 ' + S.sites.length + '곳';
     loadDash();
-    $('hSites').innerHTML = S.sites.length + '<small>곳</small>';
-    $('hSitesD').textContent = 'CHM ' + chm + ' · CHMS ' + chms;
-    $('hCourses').innerHTML = S.courses.length + '<small>개</small>';
-    $('hForms').innerHTML = (S.forms.common || []).length + '<small>문항</small>';
-    var ownN = Object.keys(S.forms.own || {}).length;
-    $('hFormsD').textContent = ownN ? ('공통 · 전용 양식 ' + ownN + '개 과정') : '공통 문항';
-    $('hAdmins').innerHTML = S.admins.length + '<small>명</small>';
-    $('homeSub').textContent = '설정에서 바꾼 내용이 바로 반영됩니다';
-
-    var need = [
-      { nm:'사업장 등록', ok:S.sites.length > 0, d:S.sites.length + '곳', go:'site' },
-      { nm:'교육 과정 · 교육 내용', ok:S.courses.length > 0, d:S.courses.length + '개', go:'course' },
-      { nm:'설문 문항', ok:(S.forms.common||[]).length > 0, d:(S.forms.common||[]).length + '문항', go:'form' },
-      { nm:'메일 수신자', ok:S.admins.length > 0, d:S.admins.length ? (S.admins.length + '명') : '아직 없음', go:'admin' },
-      { nm:'문자 수신·발신 번호', ok:!!(S.config['수신번호'] && S.config['발신번호']),
-        d:(S.config['수신번호'] || '미입력') + ' / ' + (S.config['발신번호'] || '미입력'), go:'noti' }
-    ];
-    $('readyTable').innerHTML =
-      '<thead><tr><th>항목</th><th>현재</th><th style="width:90px">상태</th><th style="width:90px"></th></tr></thead><tbody>'
-      + need.map(function(n){
-          return '<tr><td><b>' + esc(n.nm) + '</b></td><td>' + esc(n.d) + '</td>'
-            + '<td>' + (n.ok ? '<span class="chip good">완료</span>' : '<span class="chip warn">필요</span>') + '</td>'
-            + '<td class="acts"><button class="btn sm" data-goset="' + n.go + '">바로가기</button></td></tr>';
-        }).join('')
-      + '</tbody>';
-    Array.prototype.forEach.call($('readyTable').querySelectorAll('[data-goset]'), function(b){
-      b.addEventListener('click', function(){ go('settings'); openSetPane(b.getAttribute('data-goset')); });
-    });
   }
 
   /* ---------- 사업장 ---------- */
@@ -3169,7 +3113,7 @@ tr.clickable:hover td{background:var(--surface-2)}
   /* ============================================================
    *  이동
    * ============================================================ */
-  var TITLES = { home:'홈', settings:'설정', session:'교육 차수', detail:'차수 상세', result:'교육 결과 관리', report:'결과보고서', attend:'출석부', monthly:'월간 결과보고', done:'사업장 이수현황', material:'교육 자료' };
+  var TITLES = { home:'대시보드', settings:'설정', session:'교육 차수', detail:'차수 상세', result:'교육 결과 관리', report:'결과보고서', attend:'출석부', monthly:'월간 결과보고', done:'사업장 이수현황', material:'교육 자료' };
   function go(name){
     Array.prototype.forEach.call(document.querySelectorAll('.screen'), function(s){
       s.classList.toggle('on', s.id === 's-' + name);
@@ -3289,7 +3233,6 @@ tr.clickable:hover td{background:var(--surface-2)}
   if(sess){
     S.token = sess.token; S.user = sess.user;
     showApp();
-    $('apiUrl').textContent = API;
     apiGet({ mode:'me', token:S.token }).then(function(r){
       if(!r.ok){ clearSession(); showLogin(); return; }
       start();
