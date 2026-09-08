@@ -1,0 +1,18 @@
+{
+  "name": "CHM 교육관리 시스템",
+  "short_name": "CHMEdu",
+  "description": "CHM·CHMS 통합 교육관리 — 차수 등록, QR 출석·설문, 결과보고서, 이수 현황",
+  "lang": "ko",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#F4F5F8",
+  "theme_color": "#7C33D6",
+  "icons": [
+    { "src": "chmedu-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "chmedu-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "chmedu-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "chmedu-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
