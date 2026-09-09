@@ -240,6 +240,13 @@ tr.off td{opacity:.5}
 .setnav button:hover{background:var(--surface-2); color:var(--ink)}
 .setnav button.on{background:var(--accent-soft); color:var(--accent-ink); font-weight:700}
 .setbody{padding:18px; min-width:0; overflow:hidden}
+.logbar{display:flex; gap:8px; flex-wrap:wrap; margin:0 0 12px}
+.logbar .inp{width:auto; flex:0 0 auto}
+.logbar #logQ{flex:1 1 200px; min-width:0}
+.logmore{text-align:center; padding:12px 0 0}
+#logTable td.lgtx{white-space:normal; word-break:break-word}
+#logTable td.code{white-space:nowrap}
+#logTable .lgnm{color:var(--ink-3); font-size:13.5px}
 .setpane{display:none} .setpane.on{display:block}
 .formrow{display:grid; grid-template-columns:146px 1fr; gap:10px; align-items:start; margin-bottom:12px; max-width:660px}
 .formrow > label{font-size:14px; color:var(--ink-2); padding-top:8px}
@@ -675,6 +682,7 @@ tr.clickable:hover td{background:var(--surface-2)}
               <button data-set="sms">문자 수신자</button>
               <button data-set="noti">알림 설정</button>
               <button data-set="acct">계정 관리</button>
+              <button data-set="log">접속 · 작성 이력</button>
             </div>
             <div class="setbody">
 
@@ -737,6 +745,30 @@ tr.clickable:hover td{background:var(--surface-2)}
                 </div>
                 <div class="tscroll"><table id="acctTable" style="min-width:1047px"></table></div>
                 <p class="hint">비밀번호는 <b>본인이</b> 화면 오른쪽 위의 자기 이름을 눌러 바꿉니다. 잊어버린 사람은 여기서 <b>[비번 초기화]</b>를 눌러 되돌려 주고, 나온 초기 비밀번호를 알려주세요. 비밀번호는 서버에 해시로만 보관하므로 예전 것을 다시 알려줄 수는 없습니다. <b>일반</b> 권한은 설정을 뺀 나머지(현황·결과관리·등록관리)를 모두 쓸 수 있습니다. 그만둔 사람은 <b>[삭제]</b>로 계정을 지울 수 있고, 잠시만 막아둘 때는 <b>[수정] › 상태 › 중지</b>를 쓰세요. 본인 계정과 마지막 남은 마스터는 지워지지 않습니다.</p>
+              </div>
+
+              <!-- 접속 · 작성 이력 -->
+              <div class="setpane" id="p-log">
+                <div class="panel-hd" style="padding:0 0 12px">
+                  <h2>접속 · 작성 이력</h2><span class="sub" id="logCount"></span>
+                  <span class="spacer"></span>
+                  <button class="btn sm" id="logReload">새로고침</button>
+                </div>
+                <div class="logbar">
+                  <select class="inp" id="logDays">
+                    <option value="7">최근 7일</option>
+                    <option value="30" selected>최근 30일</option>
+                    <option value="90">최근 90일</option>
+                    <option value="365">최근 1년</option>
+                    <option value="0">전체</option>
+                  </select>
+                  <select class="inp" id="logKind"><option value="">종류 전체</option></select>
+                  <select class="inp" id="logWho"><option value="">사람 전체</option></select>
+                  <input class="inp" id="logQ" placeholder="내용 검색">
+                </div>
+                <div class="tscroll"><table id="logTable" style="min-width:1004px"></table></div>
+                <div class="logmore"><button class="btn sm" id="logMore" hidden>더 보기</button></div>
+                <p class="hint">누가 언제 로그인했고 무엇을 등록·수정·삭제했는지 남는 기록입니다. <b>마스터만</b> 볼 수 있습니다. 기록은 지우지 않고 계속 쌓이며, 최근 것부터 300건씩 보여줍니다. 종류는 <b>로그인 · 로그인실패 · 로그아웃 · 계정 · 설정 · 차수 · 보고서 · 자료 · 오류</b> 로 나뉩니다.</p>
               </div>
 
             </div>
@@ -1036,6 +1068,7 @@ tr.clickable:hover td{background:var(--surface-2)}
   function clearSession(){
     try{ localStorage.removeItem(SESSION_KEY); localStorage.removeItem(CACHE_KEY); }catch(e){}
     S.token = ''; S.user = null;
+    LOG = { rows:[], total:0, more:false, loaded:false, busy:false, all:0, capped:false };
   }
 
   function showLogin(msg){
@@ -1200,7 +1233,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       + esc(u.id || '') + ' · ' + (u.role === 'master' ? '마스터' : '일반') + '</span>';
     w.classList.toggle('temp', !!u.tempPw);
     if(u.tempPw) w.title = '초기 비밀번호를 쓰고 있습니다. 눌러서 바꿔주세요.';
-    $('railFoot').innerHTML = '7단계 · 계정 삭제 &nbsp;/&nbsp; ' + esc(u.name || '');
+    $('railFoot').innerHTML = '7단계 · 이력 &nbsp;/&nbsp; ' + esc(u.name || '');
   }
 
   /* 설정 맨 아래 — 웹앱 주소와 서버 버전 (배포 확인용) */
@@ -1687,6 +1720,116 @@ tr.clickable:hover td{background:var(--surface-2)}
       openAcctDelDlg(S.users.filter(function(u){ return u.id === id; })[0]);
     });
   }
+
+  /* ---------- 접속 · 작성 이력 (마스터만) ---------- */
+  var LOG = { rows:[], total:0, more:false, loaded:false, busy:false, all:0, capped:false };
+
+  var LOGCHIP = {
+    '로그인':'good', '로그아웃':'plain', '로그인실패':'crit',
+    '계정':'chm', '설정':'chm', '차수':'chm',
+    '보고서':'plain', '자료':'plain', '오류':'crit', '문자':'plain'
+  };
+
+  function logParams(){
+    return {
+      days: $('logDays').value,
+      kind: $('logKind').value,
+      id:   $('logWho').value,
+      q:    $('logQ').value.trim()
+    };
+  }
+
+  function loadLogs(append){
+    if(!isMaster()){ LOG.rows = []; drawLogs(); return Promise.resolve(); }
+    if(LOG.busy) return Promise.resolve();
+    LOG.busy = true;
+
+    var p = logParams();
+    p.mode = 'logs';
+    p.token = S.token;
+    p.offset = append ? LOG.rows.length : 0;
+
+    if(!append){
+      $('logTable').innerHTML = '<tbody><tr><td class="emptyrow">불러오는 중입니다…</td></tr></tbody>';
+      $('logMore').hidden = true;
+    }
+
+    return apiGet(p).then(function(res){
+      LOG.busy = false;
+      if(!res.ok){
+        if(res.error !== 'AUTH') toast(res.error || '이력을 불러오지 못했습니다.', true);
+        LOG.rows = []; drawLogs();
+        return;
+      }
+      LOG.loaded = true;
+      LOG.rows = append ? LOG.rows.concat(res.rows || []) : (res.rows || []);
+      LOG.total = res.total || 0;
+      LOG.more = !!res.more;
+      LOG.all = res.all || 0;
+      LOG.capped = !!res.capped;
+      if(!append) fillLogSelects(res);
+      drawLogs();
+    });
+  }
+
+  /* 종류·사람 목록은 서버가 준 것으로 다시 채운다 (고른 값은 지킨다) */
+  function fillLogSelects(res){
+    var k = $('logKind'), w = $('logWho');
+    var kv = k.value, wv = w.value;
+    k.innerHTML = '<option value="">종류 전체</option>'
+      + (res.kinds || []).map(function(x){ return '<option value="' + esc(x) + '">' + esc(x) + '</option>'; }).join('');
+    w.innerHTML = '<option value="">사람 전체</option>'
+      + (res.users || []).map(function(u){
+          return '<option value="' + esc(u.id) + '">' + esc(u.name || u.id) + ' (' + esc(u.id) + ')</option>';
+        }).join('');
+    k.value = kv; w.value = wv;
+    if(k.value !== kv) k.value = '';
+    if(w.value !== wv) w.value = '';
+  }
+
+  function drawLogs(){
+    if(!isMaster()){
+      $('logCount').textContent = '';
+      $('logTable').innerHTML = '<tbody><tr><td class="emptyrow">이력은 마스터 권한이 있어야 볼 수 있습니다.</td></tr></tbody>';
+      $('logMore').hidden = true;
+      return;
+    }
+
+    $('logCount').textContent = LOG.total
+      ? (LOG.rows.length + ' / ' + LOG.total + '건' + (LOG.capped ? ' · 오래된 기록은 제외' : ''))
+      : (LOG.loaded ? '0건' : '');
+
+    $('logTable').innerHTML =
+      '<thead><tr><th style="width:196px">일시</th><th style="width:104px">종류</th>'
+      + '<th style="width:160px">사람</th><th>내용</th></tr></thead><tbody>'
+      + (LOG.rows.length ? LOG.rows.map(function(r){
+          var cls = LOGCHIP[r.kind] || 'plain';
+          return '<tr><td class="code">' + esc(r.at) + '</td>'
+            + '<td><span class="chip ' + cls + '">' + esc(r.kind || '—') + '</span></td>'
+            + '<td>' + (r.id ? '<b>' + esc(r.name || r.id) + '</b>'
+                                + (r.name ? ' <span class="lgnm">' + esc(r.id) + '</span>' : '')
+                            : '—') + '</td>'
+            + '<td class="lgtx">' + esc(r.text || '')
+            +   (r.memo ? ' <span class="lgnm">' + esc(r.memo) + '</span>' : '') + '</td></tr>';
+        }).join('')
+        : '<tr><td colspan="4" class="emptyrow">조건에 맞는 이력이 없습니다.</td></tr>')
+      + '</tbody>';
+
+    $('logMore').hidden = !LOG.more;
+  }
+
+  var logTimer = null;
+  function logRefresh(){
+    clearTimeout(logTimer);
+    logTimer = setTimeout(function(){ loadLogs(false); }, 250);
+  }
+  ['logDays','logKind','logWho'].forEach(function(id){
+    $(id).addEventListener('change', logRefresh);
+  });
+  $('logQ').addEventListener('input', logRefresh);
+  $('logQ').addEventListener('keydown', function(e){ if(e.key === 'Enter') loadLogs(false); });
+  $('logReload').addEventListener('click', function(){ loadLogs(false); });
+  $('logMore').addEventListener('click', function(){ loadLogs(true); });
 
   /* ---------- 계정 삭제 (마스터가 남의 것을) ---------- */
   function openAcctDelDlg(u){
@@ -3585,6 +3728,7 @@ tr.clickable:hover td{background:var(--surface-2)}
     });
     if(k === 'acct') loadUsers();
     if(k === 'sms') loadSms();
+    if(k === 'log' && !LOG.loaded) loadLogs(false);
   }
   Array.prototype.forEach.call(document.querySelectorAll('.setnav button'), function(b){
     b.addEventListener('click', function(){ openSetPane(b.getAttribute('data-set')); });
