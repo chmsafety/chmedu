@@ -19,6 +19,12 @@
   --hdr-bg:#4C1D9E; --hdr-ink:#FFFFFF; --hdr-ink-3:#CDB6F5; --hdr-line:#4C1D9E;
   --cat-on-bg:#6C2ED4; --cat-on-ink:#FFFFFF; --cat-on-line:#6C2ED4;
   --zebra:#F8F6FD;
+  --band:#E1D6F5; --band-line:#B9A8E1;
+  --cat-top:#FFFFFF; --cat-bot:#F7F4FE; --cat-edge:#C4B4E6;
+  --cat-sh:0 1px 1px rgba(38,20,72,.06), 0 3px 6px -2px rgba(38,20,72,.14);
+  --cat-sh-h:0 2px 3px rgba(38,20,72,.09), 0 9px 18px -6px rgba(38,20,72,.24);
+  --cat-sh-on:0 2px 3px rgba(38,20,72,.18), 0 12px 22px -8px rgba(76,29,158,.5);
+  --band-sh:0 7px 13px -8px rgba(38,20,72,.35);
   --shadow-1:0 1px 0 rgba(21,26,23,.05), 0 6px 18px -10px rgba(21,26,23,.28);
   --shadow-2:0 1px 0 rgba(21,26,23,.06), 0 18px 40px -18px rgba(21,26,23,.4);
   --r:6px;
@@ -38,6 +44,12 @@
     --hdr-bg:#35186E; --hdr-ink:#F3EEFC; --hdr-ink-3:#B39DE0; --hdr-line:#35186E;
     --cat-on-bg:#6C2ED4; --cat-on-ink:#FFFFFF; --cat-on-line:#8B5CF0;
     --zebra:#1F1A2E;
+    --band:#1D1832; --band-line:#3B3358;
+    --cat-top:#241E3C; --cat-bot:#1B1729; --cat-edge:#3B3358;
+    --cat-sh:0 1px 1px rgba(0,0,0,.5), 0 3px 6px -2px rgba(0,0,0,.6);
+    --cat-sh-h:0 2px 3px rgba(0,0,0,.55), 0 9px 18px -6px rgba(0,0,0,.75);
+    --cat-sh-on:0 2px 3px rgba(0,0,0,.6), 0 12px 22px -8px rgba(108,46,212,.6);
+    --band-sh:0 10px 16px -14px rgba(0,0,0,.95);
     --shadow-1:0 1px 0 rgba(0,0,0,.5), 0 6px 18px -10px rgba(0,0,0,.8);
     --shadow-2:0 1px 0 rgba(0,0,0,.5), 0 18px 40px -18px rgba(0,0,0,.9);
   }
@@ -53,6 +65,12 @@
   --hdr-bg:#35186E; --hdr-ink:#F3EEFC; --hdr-ink-3:#B39DE0; --hdr-line:#35186E;
   --cat-on-bg:#6C2ED4; --cat-on-ink:#FFFFFF; --cat-on-line:#8B5CF0;
   --zebra:#1F1A2E;
+  --band:#1D1832; --band-line:#3B3358;
+  --cat-top:#241E3C; --cat-bot:#1B1729; --cat-edge:#3B3358;
+  --cat-sh:0 1px 1px rgba(0,0,0,.5), 0 3px 6px -2px rgba(0,0,0,.6);
+  --cat-sh-h:0 2px 3px rgba(0,0,0,.55), 0 9px 18px -6px rgba(0,0,0,.75);
+  --cat-sh-on:0 2px 3px rgba(0,0,0,.6), 0 12px 22px -8px rgba(108,46,212,.6);
+  --band-sh:0 10px 16px -14px rgba(0,0,0,.95);
   --shadow-1:0 1px 0 rgba(0,0,0,.5), 0 6px 18px -10px rgba(0,0,0,.8);
   --shadow-2:0 1px 0 rgba(0,0,0,.5), 0 18px 40px -18px rgba(0,0,0,.9);
 }
@@ -138,20 +156,32 @@ textarea.inp{line-height:1.6; resize:vertical}
 .hnm b{font-family:var(--font-d); font-weight:800; font-size:19px; letter-spacing:-.02em; color:var(--hdr-ink)}
 .hnm span{font-family:var(--font-m); font-size:12px; letter-spacing:.06em; color:var(--hdr-ink-3)}
 
+/* 카드 메뉴 띠 — 아래 내용과 층을 나눈다 */
+.navband{
+  background:var(--band); border-bottom:1px solid var(--band-line);
+  box-shadow:var(--band-sh); padding-bottom:16px; position:relative; z-index:5;
+}
 .cats{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; padding:16px 24px 0; width:100%}
 .cat{
   display:flex; flex-direction:column; gap:2px; align-items:flex-start; text-align:left;
-  background:var(--surface); border:1px solid var(--line); border-radius:calc(var(--r) + 3px);
-  padding:14px 16px; color:var(--ink-2); transition:border-color .12s, background .12s;
+  background:linear-gradient(180deg, var(--cat-top), var(--cat-bot));
+  border:1px solid var(--cat-edge); border-bottom-width:2px; border-radius:calc(var(--r) + 4px);
+  padding:14px 16px; color:var(--ink-2); box-shadow:var(--cat-sh);
+  transition:box-shadow .13s, transform .13s, border-color .13s, background .13s;
 }
 .cat b{font-family:var(--font-d); font-weight:800; font-size:18px; letter-spacing:-.01em; color:var(--ink)}
 .cat small{font-size:13px; color:var(--ink-3)}
-.cat:hover{border-color:var(--cat-on-line)}
-.cat.on{background:var(--cat-on-bg); border-color:var(--cat-on-line); box-shadow:inset 0 0 0 1px var(--cat-on-line)}
+.cat:hover{border-color:var(--cat-on-line); box-shadow:var(--cat-sh-h); transform:translateY(-2px)}
+.cat:active{transform:translateY(1px); box-shadow:var(--cat-sh)}
+.cat.on{
+  background:linear-gradient(180deg, #8148E6, var(--cat-on-bg));
+  border-color:var(--cat-on-line); border-bottom-color:#4B1A9C;
+  box-shadow:var(--cat-sh-on); transform:translateY(-2px);
+}
 .cat.on b{color:var(--cat-on-ink)}
-.cat.on small{color:var(--cat-on-ink); opacity:.85}
+.cat.on small{color:var(--cat-on-ink); opacity:.88}
 
-.subs{display:flex; gap:6px; flex-wrap:wrap; padding:12px 24px 0; width:100%}
+.subs{display:flex; gap:6px; flex-wrap:wrap; padding:14px 24px 0; width:100%}
 .subs.empty{display:none}
 .sub{
   background:transparent; border:1px solid transparent; border-radius:999px;
@@ -160,7 +190,7 @@ textarea.inp{line-height:1.6; resize:vertical}
 .sub:hover{background:var(--surface-2); color:var(--ink)}
 .sub.on{background:var(--accent); border-color:var(--accent); color:#fff; font-weight:700}
 
-.main{min-width:0; display:flex; flex-direction:column; flex:1}
+.main{min-width:0; display:flex; flex-direction:column; flex:1; background:var(--paper)}
 .whoami{
   display:flex; align-items:center; gap:7px; border:1px solid var(--line-2);
   background:var(--surface); color:var(--ink-2); border-radius:999px; padding:5px 13px; font-size:14px;
@@ -435,10 +465,11 @@ tr.clickable:hover td{background:var(--surface-2)}
 @media (max-width:820px){
   .hdr{padding:10px 13px; gap:8px}
   .hnm b{font-size:17px}
+  .navband{padding-bottom:12px}
   .cats{grid-template-columns:1fr 1fr; gap:8px; padding:12px 13px 0}
   .cat{padding:11px 13px}
   .cat b{font-size:16.5px}
-  .subs{padding:10px 13px 0}
+  .subs{padding:12px 13px 0}
   .wrap{padding:14px 13px 30px}
   .appfoot{padding:14px 13px 20px}
   .stats{grid-template-columns:1fr 1fr}
@@ -586,13 +617,15 @@ tr.clickable:hover td{background:var(--surface-2)}
     <button class="btn sm" id="btnLogout">로그아웃</button>
   </header>
 
-  <nav class="cats" id="cats" aria-label="카테고리">
-    <button class="cat on" data-cat="home"><b>현황</b><small>교육 현황 한눈에</small></button>
-    <button class="cat" data-cat="res"><b>결과관리</b><small>보고서 · 이수현황</small></button>
-    <button class="cat" data-cat="reg"><b>등록관리</b><small>과정 · 설문 · 차수 등록</small></button>
-    <button class="cat" data-cat="set"><b>설정</b><small>사업장 · 관리자 · 계정</small></button>
-  </nav>
-  <div class="subs empty" id="subs"></div>
+  <div class="navband">
+    <nav class="cats" id="cats" aria-label="카테고리">
+      <button class="cat on" data-cat="home"><b>현황</b><small>교육 현황 한눈에</small></button>
+      <button class="cat" data-cat="res"><b>결과관리</b><small>보고서 · 이수현황</small></button>
+      <button class="cat" data-cat="reg"><b>등록관리</b><small>과정 · 설문 · 차수 등록</small></button>
+      <button class="cat" data-cat="set"><b>설정</b><small>사업장 · 관리자 · 계정</small></button>
+    </nav>
+    <div class="subs empty" id="subs"></div>
+  </div>
   <h1 id="ttl" hidden>대시보드</h1>
 
   <div class="main">
@@ -1155,7 +1188,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       + esc(u.id || '') + ' · ' + (u.role === 'master' ? '마스터' : '일반') + '</span>';
     w.classList.toggle('temp', !!u.tempPw);
     if(u.tempPw) w.title = '초기 비밀번호를 쓰고 있습니다. 눌러서 바꿔주세요.';
-    $('railFoot').innerHTML = '7단계 · 선택 문항 · 회사→사업장 · 보고자 삭제 &nbsp;/&nbsp; ' + esc(u.name || '');
+    $('railFoot').innerHTML = '7단계 · 카드 메뉴 입체 · 보라 &nbsp;/&nbsp; ' + esc(u.name || '');
   }
 
   /* 설정 맨 아래 — 웹앱 주소와 서버 버전 (배포 확인용) */
