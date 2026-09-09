@@ -222,6 +222,13 @@ tr.off td{opacity:.5}
 #qTable input[data-i]{border:1px solid transparent; background:transparent; color:var(--ink); font-family:inherit; font-size:15px; width:100%; padding:3px 5px; border-radius:3px}
 #qTable input[data-i]:hover{border-color:var(--line)}
 #qTable input[data-i]:focus{border-color:var(--accent); background:var(--surface); outline:none}
+.qopt{display:flex; align-items:center; gap:7px; margin:5px 0 1px 5px}
+.qopt > span{font-size:12.5px; color:var(--ink-3); white-space:nowrap}
+.qopt input{
+  flex:1; min-width:0; border:1px solid var(--line); background:var(--surface); color:var(--ink);
+  font-family:inherit; font-size:14px; padding:4px 7px; border-radius:4px;
+}
+.qopt input:focus{border-color:var(--accent); outline:none}
 .iconbtn{border:0; background:transparent; color:var(--ink-3); font-size:16px; line-height:1; padding:3px 6px; border-radius:3px}
 .iconbtn:hover{background:var(--surface-2); color:var(--ink)}
 .iconbtn.del:hover{background:var(--crit-soft); color:var(--crit)}
@@ -243,6 +250,10 @@ tr.clickable:hover td{background:var(--surface-2)}
 .qb .track{display:block; flex:1; height:8px; background:var(--surface-2); border-radius:99px; overflow:hidden}
 .qb .fill{display:block; height:100%; background:var(--accent); border-radius:99px}
 .qb b{font-family:var(--font-m); font-size:14px; min-width:26px; text-align:right}
+.pkq{margin-bottom:14px}
+.pkq .pkt{font-size:14.5px; font-weight:700; color:var(--ink); margin-bottom:6px}
+.pkq .qb{margin-bottom:6px; padding-left:10px}
+.pkq b{min-width:44px}
 .texts{margin:0; padding:0; list-style:none}
 .texts li{border:1px solid var(--line); border-radius:var(--r); padding:8px 10px; margin-bottom:6px; font-size:14px; color:var(--ink-2); background:var(--surface-2)}
 .backlink{border:0; background:transparent; color:var(--ink-3); padding:0 0 8px; font-size:14px}
@@ -289,6 +300,13 @@ tr.clickable:hover td{background:var(--surface-2)}
   border-radius:var(--r); padding:11px 0; font-family:var(--font-d); font-weight:700; font-size:17px;
 }
 .sc.on{background:var(--accent); border-color:var(--accent); color:#fff}
+/* 선택(택1) 문항 — 보기를 눌러 고른다 */
+.picks{display:flex; flex-direction:column; gap:6px; margin-top:8px}
+.pk{
+  width:100%; text-align:left; border:1px solid var(--line-2); background:var(--surface); color:var(--ink);
+  border-radius:var(--r); padding:12px 14px; font-family:inherit; font-size:16px; line-height:1.4;
+}
+.pk.on{background:var(--accent); border-color:var(--accent); color:#fff; font-weight:700}
 .qitem{padding:13px 0; border-bottom:1px solid var(--line)}
 .qitem:last-child{border-bottom:0; padding-bottom:0}
 .qitem .qt{font-size:15.5px; font-weight:500; line-height:1.5}
@@ -812,7 +830,7 @@ tr.clickable:hover td{background:var(--surface-2)}
             </div>
             <div class="row" style="margin:2px 0 14px"><span class="chip plain" id="qState">—</span></div>
             <div class="tscroll"><table id="qTable" style="min-width:588px"></table></div>
-            <p class="hint">설문지 하나를 여러 과정이 같이 쓸 수 있습니다. 여기서 문항을 고치면 그 설문지를 쓰는 과정이 모두 함께 바뀝니다. 5점 척도만 평균 평점에 반영됩니다. 이미 받은 응답은 그대로 남습니다.</p>
+            <p class="hint">설문지 하나를 여러 과정이 같이 쓸 수 있습니다. 여기서 문항을 고치면 그 설문지를 쓰는 과정이 모두 함께 바뀝니다. 유형은 <b>척도</b>(1~5점) · <b>선택</b>(보기 중 하나 고르기) · <b>주관식</b> 세 가지이고, 평균 평점에는 척도만 반영됩니다. 선택 문항은 「보기」 칸에 쉼표로 나눠 적어주세요. 이미 받은 응답은 그대로 남습니다.</p>
           </div>
         </div>
       </section>
@@ -1128,7 +1146,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       + esc(u.id || '') + ' · ' + (u.role === 'master' ? '마스터' : '일반') + '</span>';
     w.classList.toggle('temp', !!u.tempPw);
     if(u.tempPw) w.title = '초기 비밀번호를 쓰고 있습니다. 눌러서 바꿔주세요.';
-    $('railFoot').innerHTML = '7단계 · 설문 등록 이동 · 보라 &nbsp;/&nbsp; ' + esc(u.name || '');
+    $('railFoot').innerHTML = '7단계 · 선택 문항 · 보라 &nbsp;/&nbsp; ' + esc(u.name || '');
   }
 
   /* 설정 맨 아래 — 웹앱 주소와 서버 버전 (배포 확인용) */
@@ -1316,7 +1334,47 @@ tr.clickable:hover td{background:var(--surface-2)}
 
   function qBase(id){
     var f = formById(id);
-    return ((f && f.qs) || []).map(function(q){ return { t:q.t, k:q.k }; });
+    return ((f && f.qs) || []).map(function(q){
+      return { t:q.t, k:q.k, opts:(q.opts || []).slice() };
+    });
+  }
+
+  /* 설문 집계 — 선택 문항은 보기별로 센다 (응답은 주관식 칸에 글자로 들어온다) */
+  function pickStats(items){
+    return (items || []).filter(function(q){ return qKind(q.k) === '선택'; }).map(function(q){
+      var cnt = {}, order = [];
+      (q.opts || []).forEach(function(o){ cnt[o] = 0; order.push(o); });
+      (q.texts || []).forEach(function(t){
+        t = String(t).trim();
+        if(!t) return;
+        if(!cnt.hasOwnProperty(t)){ cnt[t] = 0; order.push(t); }
+        cnt[t]++;
+      });
+      var tot = order.reduce(function(a, o){ return a + cnt[o]; }, 0);
+      return { t:q.t, tot:tot, rows:order.map(function(o){ return { o:o, n:cnt[o] }; }) };
+    });
+  }
+  /* 기타 의견은 주관식만 모은다 */
+  function openTexts(items){
+    var out = [];
+    (items || []).forEach(function(q){
+      if(qKind(q.k) !== '주관식') return;
+      (q.texts || []).forEach(function(t){ if(String(t).trim()) out.push(String(t).trim()); });
+    });
+    return out;
+  }
+
+  /* 유형은 척도 · 선택 · 주관식 세 가지. 모르는 값은 척도로 본다 */
+  function qKind(k){
+    k = String(k || '');
+    return (k === '주관식' || k === '선택') ? k : '척도';
+  }
+
+  /* 「보기」 문자열 ↔ 배열 — 쉼표로 나눈다 */
+  function optsToText(a){ return (a || []).join(', '); }
+  function textToOpts(s){
+    return String(s || '').split(',').map(function(x){ return x.trim(); })
+      .filter(function(x){ return x !== ''; });
   }
 
   function qCur(){
@@ -1342,12 +1400,19 @@ tr.clickable:hover td{background:var(--surface-2)}
       '<thead><tr><th class="num" style="width:59px">순서</th><th>문항</th>'
       + '<th style="width:130px">유형</th><th style="width:101px">평균 반영</th><th style="width:118px"></th></tr></thead><tbody>'
       + list.map(function(q, i){
+          var k = qKind(q.k);
           return '<tr><td class="num">' + (i+1) + '</td>'
-            + '<td><input data-i="' + i + '" value="' + esc(q.t) + '" placeholder="문항을 입력하세요"></td>'
+            + '<td><input data-i="' + i + '" value="' + esc(q.t) + '" placeholder="문항을 입력하세요">'
+            +   (k === '선택'
+                  ? '<div class="qopt"><span>보기</span>'
+                    + '<input data-o="' + i + '" value="' + esc(optsToText(q.opts)) + '" placeholder="예) 매우 만족, 만족, 보통, 불만족"></div>'
+                  : '')
+            + '</td>'
             + '<td><select class="inp" data-k="' + i + '" style="padding:3px 5px; font-size:12.5px">'
-            +   '<option' + (q.k !== '주관식' ? ' selected' : '') + '>척도</option>'
-            +   '<option' + (q.k === '주관식' ? ' selected' : '') + '>주관식</option></select></td>'
-            + '<td>' + (q.k !== '주관식' ? '<span class="chip good">반영</span>' : '<span class="chip plain">미반영</span>') + '</td>'
+            +   '<option' + (k === '척도'  ? ' selected' : '') + '>척도</option>'
+            +   '<option' + (k === '선택'  ? ' selected' : '') + '>선택</option>'
+            +   '<option' + (k === '주관식' ? ' selected' : '') + '>주관식</option></select></td>'
+            + '<td>' + (k === '척도' ? '<span class="chip good">반영</span>' : '<span class="chip plain">미반영</span>') + '</td>'
             + '<td style="white-space:nowrap; text-align:right">'
             +   '<button class="iconbtn" data-up="' + i + '" title="위로">↑</button>'
             +   '<button class="iconbtn" data-dn="' + i + '" title="아래로">↓</button>'
@@ -1358,8 +1423,16 @@ tr.clickable:hover td{background:var(--surface-2)}
     Array.prototype.forEach.call($('qTable').querySelectorAll('input[data-i]'), function(inp){
       inp.addEventListener('input', function(){ qCur()[+inp.getAttribute('data-i')].t = inp.value; });
     });
+    Array.prototype.forEach.call($('qTable').querySelectorAll('input[data-o]'), function(inp){
+      inp.addEventListener('input', function(){ qCur()[+inp.getAttribute('data-o')].opts = textToOpts(inp.value); });
+    });
     Array.prototype.forEach.call($('qTable').querySelectorAll('select[data-k]'), function(sel){
-      sel.addEventListener('change', function(){ qCur()[+sel.getAttribute('data-k')].k = sel.value; drawQTable(); });
+      sel.addEventListener('change', function(){
+        var q = qCur()[+sel.getAttribute('data-k')];
+        q.k = sel.value;
+        if(q.k === '선택' && !(q.opts || []).length) q.opts = ['매우 만족', '만족', '보통', '불만족'];
+        drawQTable();
+      });
     });
     bind($('qTable'), 'data-qdel', function(i){ qCur().splice(+i, 1); drawQTable(); });
     bind($('qTable'), 'data-up', function(i){
@@ -1373,7 +1446,7 @@ tr.clickable:hover td{background:var(--surface-2)}
   }
 
   $('qForm').addEventListener('change', function(){ qDraft = null; drawQTable(); });
-  $('qAdd').addEventListener('click', function(){ qCur().push({ t:'', k:'척도' }); drawQTable(); });
+  $('qAdd').addEventListener('click', function(){ qCur().push({ t:'', k:'척도', opts:[] }); drawQTable(); });
 
   function qSaveForm(id, nm, questions, after){
     apiPost({ mode:'formSave', id:id || '', nm:nm, questions:questions }).then(function(r){
@@ -1392,6 +1465,8 @@ tr.clickable:hover td{background:var(--surface-2)}
     if(!f) return toast('먼저 설문지를 만들어 주세요.', true);
     var list = qCur().filter(function(q){ return String(q.t || '').trim() !== ''; });
     if(!list.length) return toast('문항을 한 개 이상 적어주세요.', true);
+    var bad = list.filter(function(q){ return qKind(q.k) === '선택' && (q.opts || []).length < 2; });
+    if(bad.length) return toast('선택 문항의 보기를 2개 이상 적어주세요 — 「' + bad[0].t + '」', true);
     qSaveForm(f.id, f.nm, list);
   });
 
@@ -2117,21 +2192,33 @@ tr.clickable:hover td{background:var(--surface-2)}
       + '<button class="btn sm" id="detQr" style="margin-top:8px">크게 보기 · 인쇄</button>'
       + '</div></div></div></div>';
 
-    var bars = sv.items.filter(function(q){ return q.k === '척도'; }).map(function(q){
+    var bars = sv.items.filter(function(q){ return qKind(q.k) === '척도'; }).map(function(q){
       return '<div class="qb"><span class="qn">' + esc(q.t) + '</span>'
         + '<span class="qr2"><span class="track"><span class="fill" style="width:' + (q.avg / 5 * 100).toFixed(1) + '%"></span></span>'
         + '<b>' + (q.avg ? q.avg.toFixed(1) : '—') + '</b></span></div>';
     }).join('');
 
-    var texts = [];
-    sv.items.forEach(function(q){ q.texts.forEach(function(t){ texts.push(t); }); });
+    var picks = pickStats(sv.items).map(function(p){
+      return '<div class="pkq"><div class="pkt">' + esc(p.t) + '</div>'
+        + p.rows.map(function(x){
+            var pct = p.tot ? (x.n / p.tot * 100) : 0;
+            return '<div class="qb"><span class="qn">' + esc(x.o) + '</span>'
+              + '<span class="qr2"><span class="track"><span class="fill" style="width:' + pct.toFixed(1) + '%"></span></span>'
+              + '<b>' + x.n + '명</b></span></div>';
+          }).join('')
+        + '</div>';
+    }).join('');
+
+    var texts = openTexts(sv.items);
 
     var survey =
       '<div class="panel"><div class="panel-hd"><h2>설문 결과</h2>'
       + '<span class="sub">' + sv.count + '명 응답 · 평균 ' + (sv.avg ? sv.avg.toFixed(1) : '—') + '점</span></div>'
       + '<div class="panel-bd">'
       + (sv.count
-          ? bars + (texts.length
+          ? bars
+            + (picks ? '<h3 style="font-size:12px; color:var(--ink-3); margin:16px 0 8px">선택 문항</h3>' + picks : '')
+            + (texts.length
               ? '<h3 style="font-size:12px; color:var(--ink-3); margin:16px 0 8px">주관식 ' + texts.length + '건</h3>'
                 + '<ul class="texts">' + texts.map(function(t){ return '<li>' + esc(t) + '</li>'; }).join('') + '</ul>'
               : '')
@@ -2341,9 +2428,12 @@ tr.clickable:hover td{background:var(--surface-2)}
   /* ---------- A4 그리기 ---------- */
   function repPaper(){
     var d = REP.d, s = d.session, sv = d.survey;
-    var scales = sv.items.filter(function(q){ return q.k === '척도'; });
-    var texts = [];
-    sv.items.forEach(function(q){ (q.texts || []).forEach(function(t){ if(String(t).trim()) texts.push(t); }); });
+    var scales = sv.items.filter(function(q){ return qKind(q.k) === '척도'; });
+    /* 선택 문항은 「보기 N명」 한 줄로 요약해 기타 의견 맨 앞에 넣는다 */
+    var texts = pickStats(sv.items).filter(function(p){ return p.tot; }).map(function(p){
+      return '「' + p.t + '」 ' + p.rows.filter(function(x){ return x.n; })
+        .map(function(x){ return x.o + ' ' + x.n + '명'; }).join(' · ');
+    }).concat(openTexts(sv.items));
 
     var scRows = '';
     for(var i = 0; i < Math.max(5, scales.length); i++){
@@ -2661,7 +2751,8 @@ tr.clickable:hover td{background:var(--surface-2)}
       return '<tr><td>' + esc(k) + '</td><td class="ctr">' + d.byCo[k] + '차수</td></tr>';
     }).join('') || '<tr><td colspan="2" class="ctr">—</td></tr>';
 
-    var qs = d.questions.slice(0, 5).map(function(q){
+    /* 점수가 없는 문항(선택·주관식)은 평균 표에 넣지 않는다 — 척도 평균은 1점 밑으로 내려가지 않는다 */
+    var qs = d.questions.filter(function(q){ return Number(q.avg) > 0; }).slice(0, 5).map(function(q){
       return '<tr><td colspan="3" style="font-size:9pt">' + esc(q.t) + '</td>'
         + '<td colspan="2"><div class="bar"><i style="width:' + (q.avg/5*100).toFixed(1) + '%"></i></div></td>'
         + '<td class="ctr">' + q.avg.toFixed(1) + '</td></tr>';
@@ -3171,9 +3262,18 @@ tr.clickable:hover td{background:var(--surface-2)}
   function drawStuQs(){
     STU.answers = {};
     $('stuQs').innerHTML = STU.questions.map(function(q){
-      if(q.k === '주관식'){
+      var k = qKind(q.k);
+      if(k === '주관식'){
         return '<div class="qitem"><div class="qt">' + esc(q.t) + '</div>'
           + '<textarea class="inp" data-t="' + esc(q.id) + '" rows="3" style="margin-top:7px" placeholder="자유롭게 적어주세요 (선택)"></textarea></div>';
+      }
+      if(k === '선택'){
+        return '<div class="qitem"><div class="qt">' + esc(q.t) + '</div>'
+          + '<div class="picks" data-p="' + esc(q.id) + '">'
+          + (q.opts || []).map(function(o){
+              return '<button class="pk" data-o="' + esc(o) + '">' + esc(o) + '</button>';
+            }).join('')
+          + '</div></div>';
       }
       return '<div class="qitem"><div class="qt">' + esc(q.t) + '</div>'
         + '<div class="scale" data-q="' + esc(q.id) + '">'
@@ -3190,20 +3290,34 @@ tr.clickable:hover td{background:var(--surface-2)}
         STU.answers[row.getAttribute('data-q')] = Number(b.getAttribute('data-v'));
       });
     });
+
+    /* 선택 문항 — 하나만 고른다 */
+    Array.prototype.forEach.call($('stuQs').querySelectorAll('.picks'), function(row){
+      row.addEventListener('click', function(e){
+        var b = e.target.closest('.pk');
+        if(!b) return;
+        Array.prototype.forEach.call(row.querySelectorAll('.pk'), function(x){ x.classList.remove('on'); });
+        b.classList.add('on');
+        STU.answers[row.getAttribute('data-p')] = b.getAttribute('data-o');
+      });
+    });
   }
 
   function submitSurvey(){
     stuErr('stuMsg3', '');
-    var need = STU.questions.filter(function(q){ return q.k !== '주관식'; });
+    var need = STU.questions.filter(function(q){ return qKind(q.k) !== '주관식'; });
     var miss = need.filter(function(q){ return !STU.answers[q.id]; });
     if(miss.length) return stuErr('stuMsg3', '아직 답하지 않은 문항이 ' + miss.length + '개 있습니다.');
 
     var answers = [];
     STU.questions.forEach(function(q){
-      if(q.k === '주관식'){
+      var k = qKind(q.k);
+      if(k === '주관식'){
         var el = $('stuQs').querySelector('[data-t="' + q.id + '"]');
         var t = el ? el.value.trim() : '';
         if(t) answers.push({ id:q.id, text:t });
+      } else if(k === '선택'){
+        answers.push({ id:q.id, text:String(STU.answers[q.id] || '') });
       } else {
         answers.push({ id:q.id, score:STU.answers[q.id] });
       }
