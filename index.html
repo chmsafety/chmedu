@@ -562,8 +562,8 @@ tr.clickable:hover td{background:var(--surface-2)}
   <nav class="cats" id="cats" aria-label="카테고리">
     <button class="cat on" data-cat="home"><b>현황</b><small>교육 현황 한눈에</small></button>
     <button class="cat" data-cat="res"><b>결과관리</b><small>보고서 · 이수현황</small></button>
-    <button class="cat" data-cat="reg"><b>등록관리</b><small>과정 · 차수 등록</small></button>
-    <button class="cat" data-cat="set"><b>설정</b><small>사업장 · 설문 · 계정</small></button>
+    <button class="cat" data-cat="reg"><b>등록관리</b><small>과정 · 설문 · 차수 등록</small></button>
+    <button class="cat" data-cat="set"><b>설정</b><small>사업장 · 관리자 · 계정</small></button>
   </nav>
   <div class="subs empty" id="subs"></div>
   <h1 id="ttl" hidden>대시보드</h1>
@@ -610,7 +610,6 @@ tr.clickable:hover td{background:var(--surface-2)}
           <div class="setgrid">
             <div class="setnav">
               <button class="on" data-set="site">사업장 관리</button>
-              <button data-set="form">설문 관리</button>
               <button data-set="admin">관리자(메일) 관리</button>
               <button data-set="sms">문자 수신자</button>
               <button data-set="noti">알림 설정</button>
@@ -629,27 +628,6 @@ tr.clickable:hover td{background:var(--surface-2)}
                 </div>
                 <div class="tscroll"><table id="siteTable" style="min-width:847px"></table></div>
                 <p class="hint">교육 이력이 있는 사업장은 삭제하면 <b>사용중지</b>로 바뀝니다. 과거 기록이 사라지지 않게 하기 위해서입니다.</p>
-              </div>
-
-              <!-- 설문 -->
-              <div class="setpane" id="p-form">
-                <div class="panel-hd" style="padding:0 0 12px">
-                  <h2>설문 관리</h2><span class="sub">설문지를 만들어 두고 과정에서 골라 씁니다</span>
-                  <span class="spacer"></span>
-                  <button class="btn sm" id="qAdd">문항 추가</button>
-                  <button class="btn sm primary" id="qSave">저장</button>
-                </div>
-                <div class="formrow" style="max-width:620px"><label>설문지</label>
-                  <div class="row" style="gap:6px; flex-wrap:nowrap">
-                    <select class="inp" id="qForm" style="min-width:260px"></select>
-                    <button class="btn sm" id="qNew">새 설문지</button>
-                    <button class="btn sm" id="qRename">이름 변경</button>
-                    <button class="btn sm danger" id="qDel">삭제</button>
-                  </div>
-                </div>
-                <div class="row" style="margin:2px 0 14px"><span class="chip plain" id="qState">—</span></div>
-                <div class="tscroll"><table id="qTable" style="min-width:588px"></table></div>
-                <p class="hint">설문지 하나를 여러 과정이 같이 쓸 수 있습니다. 여기서 문항을 고치면 그 설문지를 쓰는 과정이 모두 함께 바뀝니다. 5점 척도만 평균 평점에 반영됩니다. 이미 받은 응답은 그대로 남습니다.</p>
               </div>
 
               <!-- 관리자 -->
@@ -797,7 +775,7 @@ tr.clickable:hover td{background:var(--surface-2)}
           </div>
           <div class="panel-bd tight"><div class="tscroll"><table id="courseTable" style="min-width:1125px"></table></div></div>
           <div class="panel-bd" style="padding-top:0">
-            <p class="hint">「교육 내용」이 결과보고서의 <b>1. 교육 내용</b>으로 그대로 들어갑니다. 한 번 잘 써두면 그 과정으로 여는 교육은 매번 자동으로 채워집니다. 설문지는 <b>설정 › 설문 관리</b>에서 만들어 두고 여기서 고릅니다.</p>
+            <p class="hint">「교육 내용」이 결과보고서의 <b>1. 교육 내용</b>으로 그대로 들어갑니다. 한 번 잘 써두면 그 과정으로 여는 교육은 매번 자동으로 채워집니다. 설문지는 <b>등록관리 › 설문 등록</b>에서 만들어 두고 여기서 고릅니다.</p>
           </div>
         </div>
 
@@ -813,6 +791,30 @@ tr.clickable:hover td{background:var(--surface-2)}
           </div>
         </div>
         <input type="file" id="matFile" accept="application/pdf,.pdf,.ppt,.pptx" hidden>
+      </section>
+
+      <!-- ---------- 설문 등록 ---------- -->
+      <section class="screen" id="s-form">
+        <div class="panel">
+          <div class="panel-hd"><h2>설문 등록</h2><span class="sub">설문지를 만들어 두고 과정에서 골라 씁니다</span>
+            <span class="spacer"></span>
+            <button class="btn sm" id="qAdd">문항 추가</button>
+            <button class="btn sm primary" id="qSave">저장</button>
+          </div>
+          <div class="panel-bd">
+            <div class="formrow" style="max-width:780px"><label>설문지</label>
+              <div class="row" style="gap:6px; flex-wrap:wrap">
+                <select class="inp" id="qForm" style="flex:0 1 280px; min-width:0"></select>
+                <button class="btn sm" id="qNew">새 설문지</button>
+                <button class="btn sm" id="qRename">이름 변경</button>
+                <button class="btn sm danger" id="qDel">삭제</button>
+              </div>
+            </div>
+            <div class="row" style="margin:2px 0 14px"><span class="chip plain" id="qState">—</span></div>
+            <div class="tscroll"><table id="qTable" style="min-width:588px"></table></div>
+            <p class="hint">설문지 하나를 여러 과정이 같이 쓸 수 있습니다. 여기서 문항을 고치면 그 설문지를 쓰는 과정이 모두 함께 바뀝니다. 5점 척도만 평균 평점에 반영됩니다. 이미 받은 응답은 그대로 남습니다.</p>
+          </div>
+        </div>
       </section>
 
       <!-- ---------- 출석부 ---------- -->
@@ -1126,7 +1128,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       + esc(u.id || '') + ' · ' + (u.role === 'master' ? '마스터' : '일반') + '</span>';
     w.classList.toggle('temp', !!u.tempPw);
     if(u.tempPw) w.title = '초기 비밀번호를 쓰고 있습니다. 눌러서 바꿔주세요.';
-    $('railFoot').innerHTML = '7단계 · 결과관리 · 등록관리 · 보라 &nbsp;/&nbsp; ' + esc(u.name || '');
+    $('railFoot').innerHTML = '7단계 · 설문 등록 이동 · 보라 &nbsp;/&nbsp; ' + esc(u.name || '');
   }
 
   /* 설정 맨 아래 — 웹앱 주소와 서버 버전 (배포 확인용) */
@@ -1279,7 +1281,7 @@ tr.clickable:hover td{background:var(--surface-2)}
         }).join('')
       + '</select></div>'
       + '<div class="formrow"><label>교육 내용</label><textarea class="inp" id="d_body" rows="6" placeholder="결과보고서 「1. 교육 내용」에 그대로 들어갑니다">' + esc(c.body || '') + '</textarea></div>'
-      + '<p class="hint">설문지는 <b>설정 › 설문 관리</b>에서 만듭니다. 여기서 고른 설문지가 이 과정의 QR 설문에 그대로 나옵니다.'
+      + '<p class="hint">설문지는 <b>등록관리 › 설문 등록</b>에서 만듭니다. 여기서 고른 설문지가 이 과정의 QR 설문에 그대로 나옵니다.'
       + (c.code ? ' 자료 올리기는 과정 목록의 <b>자료</b> 칸에서 합니다.' : ' 교육 자료는 저장한 뒤 과정 목록의 <b>자료</b> 칸에서 올립니다.') + '</p>',
       function(close){
         apiPost({
@@ -3234,18 +3236,18 @@ tr.clickable:hover td{background:var(--surface-2)}
   /* ============================================================
    *  이동
    * ============================================================ */
-  var TITLES = { home:'대시보드', settings:'설정', course:'과정 등록', session:'차수 등록', detail:'차수 상세', result:'보고서(차수별)', report:'결과보고서', attend:'출석부', monthly:'보고서(월간)', done:'사업장별 이수현황' };
+  var TITLES = { home:'대시보드', settings:'설정', course:'과정 등록', form:'설문 등록', session:'차수 등록', detail:'차수 상세', result:'보고서(차수별)', report:'결과보고서', attend:'출석부', monthly:'보고서(월간)', done:'사업장별 이수현황' };
   /* 화면이 어느 카테고리에 속하는지, 카테고리마다 어떤 화면을 갖는지 */
   var CATOF = {
     home:'home',
     result:'res', monthly:'res', done:'res', report:'res', attend:'res',
-    course:'reg', session:'reg', detail:'reg',
+    course:'reg', form:'reg', session:'reg', detail:'reg',
     settings:'set'
   };
   var CATSUBS = {
     home: [],
     res:  [['result','보고서(차수별)'], ['monthly','보고서(월간)'], ['done','사업장별 이수현황']],
-    reg:  [['course','과정 등록'], ['session','차수 등록']],
+    reg:  [['course','과정 등록'], ['form','설문 등록'], ['session','차수 등록']],
     set:  []
   };
   var CATFIRST = { home:'home', res:'result', reg:'course', set:'settings' };
