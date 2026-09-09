@@ -1155,7 +1155,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       + esc(u.id || '') + ' · ' + (u.role === 'master' ? '마스터' : '일반') + '</span>';
     w.classList.toggle('temp', !!u.tempPw);
     if(u.tempPw) w.title = '초기 비밀번호를 쓰고 있습니다. 눌러서 바꿔주세요.';
-    $('railFoot').innerHTML = '7단계 · 선택 문항 · 회사→사업장 &nbsp;/&nbsp; ' + esc(u.name || '');
+    $('railFoot').innerHTML = '7단계 · 선택 문항 · 회사→사업장(차수·설문) &nbsp;/&nbsp; ' + esc(u.name || '');
   }
 
   /* 설정 맨 아래 — 웹앱 주소와 서버 버전 (배포 확인용) */
@@ -2095,9 +2095,13 @@ tr.clickable:hover td{background:var(--surface-2)}
   /* ---------- 차수 등록 · 수정 ---------- */
   function openSessionDlg(s){
     s = s || {};
-    var siteOpt = S.sites.map(function(x){
-      return '<option value="' + esc(x.code) + '"' + (s.siteCode === x.code ? ' selected' : '') + '>'
-        + esc(x.co) + ' · ' + esc(x.nm) + '</option>';
+    /* 회사를 먼저 고르고, 그 회사의 사업장만 보여준다 */
+    var cos = [];
+    S.sites.forEach(function(x){ if(cos.indexOf(x.co) < 0) cos.push(x.co); });
+    var curSite = S.sites.filter(function(x){ return x.code === s.siteCode; })[0];
+    var curCo = (curSite && curSite.co) || cos[0] || '';
+    var coOpt = cos.map(function(c){
+      return '<option' + (c === curCo ? ' selected' : '') + '>' + esc(c) + '</option>';
     }).join('');
     var courseOpt = S.courses.map(function(c){
       return '<option value="' + esc(c.code) + '"' + (s.course === c.code ? ' selected' : '') + '>' + esc(c.nm) + '</option>';
@@ -2106,7 +2110,8 @@ tr.clickable:hover td{background:var(--surface-2)}
     var d = s.date || (today.getFullYear() + '-' + p2(today.getMonth()+1) + '-' + p2(today.getDate()));
 
     dlg(s.id ? ('차수 수정 — ' + esc(s.id)) : '교육 차수 등록',
-      '<div class="formrow"><label>사업장 *</label><select class="inp" id="d_site">' + siteOpt + '</select></div>'
+      '<div class="formrow"><label>회사 *</label><select class="inp" id="d_co">' + coOpt + '</select></div>'
+      + '<div class="formrow"><label>사업장 *</label><select class="inp" id="d_site"></select></div>'
       + '<div class="formrow"><label>교육 과정 *</label><select class="inp" id="d_course">' + courseOpt + '</select></div>'
       + '<div class="formrow"><label>교육 구분</label><select class="inp" id="d_kind">'
       + ['본사교육','사업장 정기교육','사업장 수시교육'].map(function(k){
@@ -2127,6 +2132,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       + '<div class="formrow"><label>교육 내용</label><textarea class="inp" id="d_body" rows="5" placeholder="비워두면 과정에 적어둔 내용이 그대로 들어갑니다">' + esc(s.body || '') + '</textarea></div>'
       + '<p class="hint">교육 구분과 교육 내용은 과정에 적어둔 것이 자동으로 들어옵니다. 이 차수만 다르게 했으면 여기서 고치세요. 교육시간은 시작·종료 시각으로 자동 계산됩니다.</p>',
       function(close){
+        if(!$('d_site').value) return toast('사업장을 골라주세요.', true);
         apiPost({
           mode:'sessionSave', id:s.id || '',
           siteCode:$('d_site').value, course:$('d_course').value,
@@ -2146,6 +2152,19 @@ tr.clickable:hover td{background:var(--surface-2)}
           loadSessions();
         });
       });
+
+    /* 회사를 바꾸면 그 회사의 사업장만 다시 그린다 */
+    function drawDlgSites(want){
+      var co = $('d_co').value;
+      var list = S.sites.filter(function(x){ return x.co === co; });
+      $('d_site').innerHTML = list.map(function(x){
+        return '<option value="' + esc(x.code) + '"' + (want === x.code ? ' selected' : '') + '>' + esc(x.nm) + '</option>';
+      }).join('') || '<option value="">등록된 사업장이 없습니다</option>';
+    }
+    if($('d_co')){
+      drawDlgSites(s.siteCode || '');
+      $('d_co').addEventListener('change', function(){ drawDlgSites(''); });
+    }
 
     /* 과정을 고르면 교육 구분·교육 내용이 따라 들어온다 (고쳐 쓸 수 있다) */
     function syncFromCourse(force){
