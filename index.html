@@ -383,16 +383,15 @@ tr.clickable:hover td{background:var(--surface-2)}
 
 /* ---------- 결과보고서 ---------- */
 .replay{display:flex; gap:18px; align-items:flex-start}
-.repform{flex:0 0 360px; min-width:0}
-.reppaper{flex:1 1 auto; min-width:0; overflow:auto; padding-bottom:8px}
+/* 담당자 작성란은 오른쪽, A4 미리보기는 왼쪽 — 좁은 화면(≤1300px)에서는 위아래로 바뀌고
+   그때는 order 가 먹지 않으므로 적는 칸이 먼저 나온다 */
+.repform{flex:0 0 360px; min-width:0; order:2}
+.reppaper{flex:1 1 auto; min-width:0; overflow:auto; padding-bottom:8px; order:1}
 @media (max-width:1300px){ .replay{display:block} .repform{width:auto} .reppaper{margin-top:16px} }
 .thumb{position:relative; border:1px solid var(--line); border-radius:var(--r); height:104px; display:flex; align-items:center; justify-content:center; overflow:hidden; background:var(--surface-2); cursor:pointer}
 .thumb img{width:100%; height:100%; object-fit:cover}
 .thumb span{font-size:13.5px; color:var(--ink-3)}
 .thumb .x{position:absolute; top:4px; right:4px; background:rgba(0,0,0,.55); color:#fff; border:0; border-radius:4px; font-size:12.5px; padding:2px 6px; cursor:pointer}
-.mailrow{display:flex; gap:8px; align-items:center; padding:5px 0; font-size:15px}
-.mailrow input{width:15px; height:15px}
-.mailrow small{color:var(--ink-3)}
 
 /* A4 — 화면에 보이는 그대로 PDF 가 됩니다 */
 .a4{width:210mm; min-height:297mm; box-sizing:border-box; padding:11mm 12mm;
@@ -1237,7 +1236,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       + esc(u.id || '') + ' · ' + (u.role === 'master' ? '마스터' : '일반') + '</span>';
     w.classList.toggle('temp', !!u.tempPw);
     if(u.tempPw) w.title = '초기 비밀번호를 쓰고 있습니다. 눌러서 바꿔주세요.';
-    $('railFoot').innerHTML = '7단계 · 이력 &nbsp;/&nbsp; ' + esc(u.name || '');
+    $('railFoot').innerHTML = '7단계 · 보고서 손질 &nbsp;/&nbsp; ' + esc(u.name || '');
   }
 
   /* 설정 맨 아래 — 웹앱 주소와 서버 버전 (배포 확인용) */
@@ -2529,7 +2528,7 @@ tr.clickable:hover td{background:var(--surface-2)}
    *  화면에 보이는 A4 를 그대로 PDF 로 만들어 관리자에게 메일로 보냅니다.
    * ============================================================ */
 
-  var REP = { id:'', d:null, mood:'', note:'', ph:[null,null], phDel:[false,false], phNew:[false,false] };
+  var REP = { id:'', d:null, mood:'', note:'', mails:[], ph:[null,null], phDel:[false,false], phNew:[false,false] };
 
   /* ---------- 차수 고르기 ---------- */
   function drawRepPick(){
@@ -2589,10 +2588,8 @@ tr.clickable:hover td{background:var(--surface-2)}
     var d = REP.d, s = d.session;
     var sent = d.report.sentAt;
 
-    var mails = d.admins.map(function(a, i){
-      return '<label class="mailrow"><input type="checkbox" class="repMail" value="' + esc(a.mail) + '" checked>'
-        + '<span>' + esc(a.mail) + '</span> <small>' + esc(a.nm || '') + (a.kind ? ' · ' + esc(a.kind) : '') + '</small></label>';
-    }).join('');
+    /* 받는 곳은 화면에 보여주지 않는다 — 설정 › 관리자(메일) 관리에서만 다룬다 */
+    REP.mails = d.admins.map(function(a){ return a.mail; });
 
     $('repBody').innerHTML =
       '<div class="replay">'
@@ -2601,7 +2598,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       +   '<div class="panel"><div class="panel-hd"><h2>담당자 작성</h2>'
       +     '<span class="sub">' + esc(s.date) + ' · ' + esc(s.site) + '</span></div>'
       +   '<div class="panel-bd">'
-      +     (sent ? '<div class="msg ok" style="margin-bottom:12px">' + esc(sent) + ' 에 ' + esc(d.report.sentTo) + ' 로 보냈습니다.</div>' : '')
+      +     (sent ? '<div class="msg ok" style="margin-bottom:12px">' + esc(sent) + ' 에 발송했습니다.</div>' : '')
       +     '<div class="formrow" style="display:block"><label>3사업장 및 교육 분위기</label>'
       +       '<textarea class="inp" id="repMood" rows="4" placeholder="예) 전원 집중해서 참여했고 질의응답이 활발했습니다.">' + esc(REP.mood) + '</textarea></div>'
       +     '<div class="formrow" style="display:block"><label>4. 기타 특이사항</label>'
@@ -2616,20 +2613,20 @@ tr.clickable:hover td{background:var(--surface-2)}
       +       '<p class="hint">긴 쪽 1400px 로 줄여서 올립니다.</p></div>'
       +   '</div></div>'
 
-      +   '<div class="panel"><div class="panel-hd"><h2>메일 보내기</h2>'
-      +     '<span class="sub">' + d.admins.length + '명</span></div>'
+      +   '<div class="panel"><div class="panel-hd"><h2>메일 보내기</h2></div>'
       +   '<div class="panel-bd">'
-      +     (d.admins.length
-        ? mails + '<div class="formrow" style="display:block; margin-top:10px"><label>덧붙일 말 (선택)</label>'
+      +     (REP.mails.length
+        ? '<p class="hint" style="margin:0"><b>설정 › 관리자(메일) 관리</b>에 등록된 곳으로 보냅니다.</p>'
+          + '<div class="formrow" style="display:block; margin-top:10px"><label>덧붙일 말 (선택)</label>'
           + '<input class="inp" id="repMemo" placeholder="메일 본문 끝에 한 줄 들어갑니다"></div>'
-        : '<div class="msg info">받는 사람이 없습니다. 설정 › 관리자(메일) 관리에서 먼저 등록해 주세요.</div>')
+        : '<div class="msg info">받는 곳이 없습니다. <b>설정 › 관리자(메일) 관리</b>에서 먼저 등록해 주세요.</div>')
       +     '<div class="row" style="margin-top:14px; gap:8px">'
       +       '<button class="btn" id="repSave">저장</button>'
       +       '<button class="btn" id="repPrint">인쇄</button>'
       +       '<span class="spacer"></span>'
-      +       '<button class="btn primary" id="repSend"' + (d.admins.length ? '' : ' disabled') + '>PDF 만들어 발송</button>'
+      +       '<button class="btn primary" id="repSend"' + (REP.mails.length ? '' : ' disabled') + '>PDF 만들어 발송</button>'
       +     '</div>'
-      +     '<p class="hint" style="margin-top:8px">오른쪽에 보이는 그대로 PDF 가 됩니다.</p>'
+      +     '<p class="hint" style="margin-top:8px">왼쪽에 보이는 그대로 PDF 가 됩니다.</p>'
       +   '</div></div>'
       + '</div>'
 
@@ -2705,27 +2702,26 @@ tr.clickable:hover td{background:var(--surface-2)}
         .map(function(x){ return x.o + ' ' + x.n + '명'; }).join(' · ');
     }).concat(openTexts(sv.items));
 
+    /* 항목별 점수 — 막대그래프 없이 문항과 점수만 적는다 */
+    var scN = Math.max(5, scales.length);
     var scRows = '';
-    for(var i = 0; i < Math.max(5, scales.length); i++){
+    for(var i = 0; i < scN; i++){
       var q = scales[i];
       scRows += '<tr>'
-        + (i === 0 ? '<td class="lb" rowspan="' + Math.max(5, scales.length) + '">항목별<br>점수</td>' : '')
-        + '<td colspan="3" class="rowh" style="font-size:9.5pt"><span class="clip" style="height:5.4mm">' + (q ? esc(q.t) : '') + '</span></td>'
-        + '<td>' + (q ? '<div class="bar"><i style="width:' + (q.avg/5*100).toFixed(1) + '%"></i></div>' : '') + '</td>'
+        + (i === 0 ? '<td class="lb" rowspan="' + scN + '">항목별<br>점수</td>' : '')
+        + '<td colspan="4" class="rowh" style="font-size:9.5pt"><span class="clip" style="height:5.4mm">' + (q ? esc(q.t) : '') + '</span></td>'
         + '<td class="ctr">' + (q && q.avg ? q.avg.toFixed(1) : '') + '</td>'
         + '</tr>';
     }
 
-    var txRows = '';
-    for(var j = 0; j < 5; j++){
-      txRows += '<tr>'
-        + (j === 0 ? '<td class="lb" rowspan="5">기타<br>의견</td>' : '')
-        + '<td colspan="5" class="rowh" style="font-size:9.5pt"><span class="clip" style="height:5.4mm">' + (texts[j] ? esc(texts[j]) : '') + '</span></td>'
-        + '</tr>';
-    }
-    if(texts.length > 5){
-      txRows += '<tr><td colspan="6" style="font-size:9pt; color:#555">외 ' + (texts.length - 5) + '건</td></tr>';
-    }
+    /* 기타 의견 — 줄로 나누지 않고 한 칸에 모아 적는다 */
+    var TX_MAX = 12;
+    var shown = texts.slice(0, TX_MAX).map(function(t){ return esc(t); });
+    if(texts.length > TX_MAX) shown.push('외 ' + (texts.length - TX_MAX) + '건');
+    var txRows = '<tr><td class="lb">기타<br>의견</td>'
+      + '<td colspan="5" style="font-size:9.5pt"><span class="clip" style="height:27mm; line-height:1.45">'
+      +   (shown.length ? shown.join('<br>') : '')
+      + '</span></td></tr>';
 
     var time = s.start ? (s.start + ' ~ ' + s.end + '  (' + s.hrs + '시간)') : '—';
 
@@ -2810,8 +2806,8 @@ tr.clickable:hover td{background:var(--surface-2)}
   }
 
   function repSend(){
-    var mails = Array.prototype.map.call(document.querySelectorAll('.repMail:checked'), function(c){ return c.value; });
-    if(!mails.length) return toast('받는 사람을 한 명 이상 고르세요.', true);
+    var mails = (REP.mails || []).slice();
+    if(!mails.length) return toast('설정 › 관리자(메일) 관리에서 받는 곳을 먼저 등록해 주세요.', true);
 
     var btn = $('repSend'), old = btn.textContent;
     btn.disabled = true; btn.textContent = '저장 중…';
@@ -2863,16 +2859,21 @@ tr.clickable:hover td{background:var(--surface-2)}
     setTimeout(function(){ root.innerHTML = ''; }, 800);
   }
 
-  /** 관리자 메일 체크박스 묶음 */
+  /**
+   * 받는 곳 안내 — 메일 주소는 화면에 보여주지 않는다.
+   * 어디로 갈지는 설정 › 관리자(메일) 관리에서만 관리한다.
+   */
+  var MAILTO = [];
+
   function mailPicker(admins){
-    if(!admins.length) return '<div class="msg info">받는 사람이 없습니다. 설정 › 관리자(메일) 관리에서 먼저 등록해 주세요.</div>';
-    return admins.map(function(a){
-      return '<label class="mailrow"><input type="checkbox" class="pdfMail" value="' + esc(a.mail) + '" checked>'
-        + '<span>' + esc(a.mail) + '</span> <small>' + esc(a.nm || '') + '</small></label>';
-    }).join('');
+    MAILTO = (admins || []).map(function(a){ return a.mail; });
+    if(!MAILTO.length){
+      return '<div class="msg info">받는 곳이 없습니다. <b>설정 › 관리자(메일) 관리</b>에서 먼저 등록해 주세요.</div>';
+    }
+    return '<p class="hint" style="margin:0"><b>설정 › 관리자(메일) 관리</b>에 등록된 곳으로 보냅니다.</p>';
   }
   function pickedMails(){
-    return Array.prototype.map.call(document.querySelectorAll('.pdfMail:checked'), function(c){ return c.value; });
+    return MAILTO.slice();
   }
 
   /* ============================================================
