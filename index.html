@@ -736,8 +736,8 @@ tr.clickable:hover td{background:var(--surface-2)}
                   <span class="spacer"></span>
                   <button class="btn sm primary" id="acctAdd">계정 추가</button>
                 </div>
-                <div class="tscroll"><table id="acctTable" style="min-width:977px"></table></div>
-                <p class="hint">비밀번호는 <b>본인이</b> 화면 오른쪽 위의 자기 이름을 눌러 바꿉니다. 잊어버린 사람은 여기서 <b>[비번 초기화]</b>를 눌러 되돌려 주고, 나온 초기 비밀번호를 알려주세요. 비밀번호는 서버에 해시로만 보관하므로 예전 것을 다시 알려줄 수는 없습니다. <b>일반</b> 권한은 설정을 뺀 나머지(현황·결과관리·등록관리)를 모두 쓸 수 있습니다.</p>
+                <div class="tscroll"><table id="acctTable" style="min-width:1047px"></table></div>
+                <p class="hint">비밀번호는 <b>본인이</b> 화면 오른쪽 위의 자기 이름을 눌러 바꿉니다. 잊어버린 사람은 여기서 <b>[비번 초기화]</b>를 눌러 되돌려 주고, 나온 초기 비밀번호를 알려주세요. 비밀번호는 서버에 해시로만 보관하므로 예전 것을 다시 알려줄 수는 없습니다. <b>일반</b> 권한은 설정을 뺀 나머지(현황·결과관리·등록관리)를 모두 쓸 수 있습니다. 그만둔 사람은 <b>[삭제]</b>로 계정을 지울 수 있고, 잠시만 막아둘 때는 <b>[수정] › 상태 › 중지</b>를 쓰세요. 본인 계정과 마지막 남은 마스터는 지워지지 않습니다.</p>
               </div>
 
             </div>
@@ -1201,7 +1201,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       + esc(u.id || '') + ' · ' + (u.role === 'master' ? '마스터' : '일반') + '</span>';
     w.classList.toggle('temp', !!u.tempPw);
     if(u.tempPw) w.title = '초기 비밀번호를 쓰고 있습니다. 눌러서 바꿔주세요.';
-    $('railFoot').innerHTML = '7단계 · 권한 · 비밀번호 &nbsp;/&nbsp; ' + esc(u.name || '');
+    $('railFoot').innerHTML = '7단계 · 계정 삭제 &nbsp;/&nbsp; ' + esc(u.name || '');
   }
 
   /* 설정 맨 아래 — 웹앱 주소와 서버 버전 (배포 확인용) */
@@ -1660,7 +1660,7 @@ tr.clickable:hover td{background:var(--surface-2)}
     $('acctTable').innerHTML =
       '<thead><tr><th style="width:113px">아이디</th><th style="width:113px">이름</th><th style="width:130px">소속</th>'
       + '<th style="width:94px">권한</th><th style="width:177px">최근 로그인</th><th style="width:90px">상태</th>'
-      + '<th style="width:260px"></th></tr></thead><tbody>'
+      + '<th style="width:330px"></th></tr></thead><tbody>'
       + S.users.map(function(u){
           var d = u.lastLogin ? new Date(u.lastLogin) : null;
           var ds = d ? (d.getFullYear() + '-' + p2(d.getMonth()+1) + '-' + p2(d.getDate()) + ' ' + p2(d.getHours()) + ':' + p2(d.getMinutes())) : '—';
@@ -1673,7 +1673,8 @@ tr.clickable:hover td{background:var(--surface-2)}
             +   (u.tempPw ? ' <span class="chip warn">초기</span>' : '') + '</td>'
             + '<td class="acts"><button class="btn sm" data-edit="' + esc(u.id) + '">수정</button>'
             +   (u.id === (S.user && S.user.id) ? ''
-                  : ' <button class="btn sm" data-pwr="' + esc(u.id) + '">비번 초기화</button>') + '</td></tr>';
+                  : ' <button class="btn sm" data-pwr="' + esc(u.id) + '">비번 초기화</button>'
+                    + ' <button class="btn sm danger" data-del="' + esc(u.id) + '">삭제</button>') + '</td></tr>';
         }).join('')
       + '</tbody>';
 
@@ -1683,6 +1684,25 @@ tr.clickable:hover td{background:var(--surface-2)}
     bind($('acctTable'), 'data-pwr', function(id){
       openPwResetDlg(S.users.filter(function(u){ return u.id === id; })[0]);
     });
+    bind($('acctTable'), 'data-del', function(id){
+      openAcctDelDlg(S.users.filter(function(u){ return u.id === id; })[0]);
+    });
+  }
+
+  /* ---------- 계정 삭제 (마스터가 남의 것을) ---------- */
+  function openAcctDelDlg(u){
+    if(!u) return;
+    confirmDlg('계정 삭제',
+      '<b>' + esc(u.name) + '</b> (' + esc(u.id) + ') 계정을 지울까요?'
+      + '<div class="msg err" style="margin-top:12px">지우면 이 사람은 더 이상 로그인할 수 없고, 계정을 되살릴 수 없습니다.'
+      + ' 잠시만 막아두려면 <b>수정 › 상태 › 중지</b> 를 쓰세요.</div>'
+      + '<p class="hint" style="margin-top:10px">이 사람이 예전에 등록한 교육 차수·보고서는 그대로 남습니다.</p>',
+      function(){
+        apiPost({ mode:'userDelete', id:u.id }).then(function(r){
+          if(!r.ok) return toast(r.error, true);
+          toast(r.message); loadUsers();
+        });
+      });
   }
   function p2(n){ return ('0' + n).slice(-2); }
 
