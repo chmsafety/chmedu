@@ -385,8 +385,11 @@ tr.clickable:hover td{background:var(--surface-2)}
 .replay{display:flex; gap:18px; align-items:flex-start}
 /* 담당자 작성란은 오른쪽, A4 미리보기는 왼쪽 — 좁은 화면(≤1300px)에서는 위아래로 바뀌고
    그때는 order 가 먹지 않으므로 적는 칸이 먼저 나온다 */
-.repform{flex:0 0 360px; min-width:0; order:2}
+.repform{flex:0 0 430px; min-width:0; order:2}
 .reppaper{flex:1 1 auto; min-width:0; overflow:auto; padding-bottom:8px; order:1}
+/* A4 를 남는 자리 가운데로 — 담당자 작성란과 너무 떨어져 보이지 않게.
+   종이가 자리보다 넓어지면 auto 여백이 0 이 되어 그냥 왼쪽에 붙는다(잘리지 않는다) */
+.reppaper > .a4{margin-left:auto; margin-right:auto}
 @media (max-width:1300px){ .replay{display:block} .repform{width:auto} .reppaper{margin-top:16px} }
 .thumb{position:relative; border:1px solid var(--line); border-radius:var(--r); height:104px; display:flex; align-items:center; justify-content:center; overflow:hidden; background:var(--surface-2); cursor:pointer}
 .thumb img{width:100%; height:100%; object-fit:cover}
@@ -412,8 +415,6 @@ tr.clickable:hover td{background:var(--surface-2)}
 .a4 .ph{height:32mm; text-align:center; padding:2px}
 .a4 .ph img{max-width:100%; max-height:30mm; object-fit:contain}
 .a4 .ph em{color:#999; font-style:normal; font-size:9pt}
-.a4 .bar{position:relative; height:9px; background:#e2e2e2; border-radius:2px}
-.a4 .bar i{position:absolute; left:0; top:0; bottom:0; background:#2f6b52; border-radius:2px}
 .a4 .foot{margin-top:5mm; text-align:right; font-size:9.5pt; color:#333}
 .a4 .sg{height:8.6mm; text-align:center; padding:1px}
 .a4 .sg img{max-height:8.5mm; max-width:34mm}
@@ -1236,7 +1237,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       + esc(u.id || '') + ' · ' + (u.role === 'master' ? '마스터' : '일반') + '</span>';
     w.classList.toggle('temp', !!u.tempPw);
     if(u.tempPw) w.title = '초기 비밀번호를 쓰고 있습니다. 눌러서 바꿔주세요.';
-    $('railFoot').innerHTML = '7단계 · 보고서 손질 &nbsp;/&nbsp; ' + esc(u.name || '');
+    $('railFoot').innerHTML = '7단계 · 보고서 손질 2 &nbsp;/&nbsp; ' + esc(u.name || '');
   }
 
   /* 설정 맨 아래 — 웹앱 주소와 서버 버전 (배포 확인용) */
@@ -2286,7 +2287,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       state:$('fState').value, q:$('fQ').value.trim()
     }).then(function(r){
       if(!r.ok){ toast(r.error, true); return; }
-      SES.list = r.sessions; SES.stat = r.stat; SES.loaded = true;
+      SES.list = r.sessions || []; SES.stat = r.stat; SES.loaded = true;
       drawSessions();
     });
   }
@@ -2295,7 +2296,7 @@ tr.clickable:hover td{background:var(--surface-2)}
 
   function drawSessions(){
     var st = SES.stat || { total:0, chm:0, chms:0, people:0, score:0 };
-    var temp = SES.list.filter(function(s){ return s.state === '임시'; }).length;
+    var temp = (SES.list || []).filter(function(s){ return s.state === '임시'; }).length;
     $('kTotal').innerHTML = st.total + '<small>차수</small>';
     $('kCo').textContent = 'CHM ' + st.chm + ' · CHMS ' + st.chms;
     $('kPpl').innerHTML = st.people + '<small>명</small>';
@@ -2710,7 +2711,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       scRows += '<tr>'
         + (i === 0 ? '<td class="lb" rowspan="' + scN + '">항목별<br>점수</td>' : '')
         + '<td colspan="4" class="rowh" style="font-size:9.5pt"><span class="clip" style="height:5.4mm">' + (q ? esc(q.t) : '') + '</span></td>'
-        + '<td class="ctr">' + (q && q.avg ? q.avg.toFixed(1) : '') + '</td>'
+        + '<td class="ctr">' + (q && q.avg ? '<b>' + q.avg.toFixed(1) + '</b> / 5.0' : '') + '</td>'
         + '</tr>';
     }
 
@@ -2737,17 +2738,15 @@ tr.clickable:hover td{background:var(--surface-2)}
       +     '<td class="lb">교육시간</td><td colspan="3">' + esc(time) + '</td></tr>'
       + '<tr><td class="lb">대　　상</td><td colspan="2">' + esc(s.co) + ' / ' + esc(s.site) + '</td>'
       +     '<td class="lb">참석자 수</td><td class="ctr" colspan="2">' + esc(s.attend || 0) + '명' + (tgt(s.target) ? ' / ' + esc(tgt(s.target)) + '명' : '') + '</td></tr>'
-      + '<tr><td class="lb">강　　사</td><td>' + esc(s.teacher || '—') + '</td>'
-      +     '<td class="lb">교육장소</td><td>' + esc(s.place || '—') + '</td>'
+      + '<tr><td class="lb">강　　사</td><td colspan="3">' + esc(s.teacher || '—') + '</td>'
       +     '<td class="lb">차 수 ID</td><td class="ctr" style="font-size:8.5pt">' + esc(s.id) + '</td></tr>'
 
       + '<tr><td class="sec" colspan="6">1. 교육 내용</td></tr>'
       + '<tr><td class="body" colspan="6"><span class="clip" style="height:22mm">' + esc(s.body || '') + '</span></td></tr>'
 
       + '<tr><td class="sec" colspan="6">2. 교육 결과</td></tr>'
-      + '<tr><td class="lb">설문 참여</td><td class="ctr">' + esc(sv.count) + '명</td>'
-      +     '<td class="lb">전체 평점</td><td class="ctr"><b>' + (sv.avg ? sv.avg.toFixed(1) : '—') + '</b> / 5.0</td>'
-      +     '<td class="lb">응답률</td><td class="ctr">' + (s.attend ? Math.round(sv.count / s.attend * 100) + '%' : '—') + '</td></tr>'
+      + '<tr><td class="lb">설문 참여</td><td class="ctr" colspan="2">' + esc(sv.count) + '명</td>'
+      +     '<td class="lb">전체 평점</td><td class="ctr" colspan="2"><b>' + (sv.avg ? sv.avg.toFixed(1) : '—') + '</b> / 5.0</td></tr>'
       + scRows
       + txRows
 
@@ -3024,9 +3023,8 @@ tr.clickable:hover td{background:var(--surface-2)}
 
     /* 점수가 없는 문항(선택·주관식)은 평균 표에 넣지 않는다 — 척도 평균은 1점 밑으로 내려가지 않는다 */
     var qs = d.questions.filter(function(q){ return Number(q.avg) > 0; }).slice(0, 5).map(function(q){
-      return '<tr><td colspan="3" style="font-size:9pt">' + esc(q.t) + '</td>'
-        + '<td colspan="2"><div class="bar"><i style="width:' + (q.avg/5*100).toFixed(1) + '%"></i></div></td>'
-        + '<td class="ctr">' + q.avg.toFixed(1) + '</td></tr>';
+      return '<tr><td colspan="5" style="font-size:9pt">' + esc(q.t) + '</td>'
+        + '<td class="ctr"><b>' + q.avg.toFixed(1) + '</b> / 5.0</td></tr>';
     }).join('') || '<tr><td colspan="6" class="ctr">설문 응답이 없습니다.</td></tr>';
 
     var MAXROW = 11;
@@ -3040,9 +3038,6 @@ tr.clickable:hover td{background:var(--surface-2)}
     if(d.sessions.length > MAXROW){
       list += '<tr><td colspan="7" class="ctr" style="font-size:8.5pt; color:#555">외 ' + (d.sessions.length - MAXROW) + '건</td></tr>';
     }
-
-    var none = d.none.slice(0, 18).map(function(x){ return x.co + ' ' + x.nm; }).join(' · ')
-      + (d.none.length > 18 ? ' 외 ' + (d.none.length - 18) + '곳' : '');
 
     $('a4mon').innerHTML =
       '<h1 class="ttl">월간 교육 결과보고</h1>'
@@ -3075,11 +3070,9 @@ tr.clickable:hover td{background:var(--surface-2)}
       +   list
       + '</tbody></table></td></tr>'
 
-      + '<tr><td class="sec" colspan="6">4. 이번 달 교육이 없는 사업장 (' + d.none.length + '곳)</td></tr>'
-      + '<tr><td colspan="6" style="height:14mm; vertical-align:top; font-size:9pt"><span class="clip" style="height:13mm">' + esc(none || '없음') + '</span></td></tr>'
-
-      + '<tr><td class="sec" colspan="6">5. 총평</td></tr>'
-      + '<tr><td colspan="6" style="height:20mm; vertical-align:top"><span class="clip" style="height:19mm">' + esc(MON.sum) + '</span></td></tr>'
+      /* 「교육이 없는 사업장」 항목을 뺀 만큼 총평 칸을 넓혔다 */
+      + '<tr><td class="sec" colspan="6">4. 총평</td></tr>'
+      + '<tr><td colspan="6" style="height:40mm; vertical-align:top"><span class="clip" style="height:39mm">' + esc(MON.sum) + '</span></td></tr>'
       + '</tbody></table>'
       + '<div class="foot">보고자 : ' + esc(d.reporter || (S.user && S.user.name) || '') + '　／　작성일 : ' + esc(today_()) + '</div>';
   }
