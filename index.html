@@ -486,6 +486,10 @@ tr.clickable:hover td{background:var(--surface-2)}
   .setnav button{white-space:nowrap}
   .formrow{grid-template-columns:1fr; gap:4px}
   .formrow > label{padding-top:0}
+  /* 차수 상세 — 좁은 화면에서는 QR 을 아래로 내린다 (옆에 두면 왼쪽 칸이 짜부라져 글자가 겹쳐 보였음) */
+  .dgrid{grid-template-columns:1fr}
+  .dgrid .qrcol{max-width:320px}
+  .kv{grid-template-columns:88px 1fr}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -1337,7 +1341,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       + '<th style="width:140px">설문지</th><th style="width:84px">자료</th><th style="width:84px">QR</th><th style="width:160px"></th></tr></thead><tbody>'
       + (S.courses.length ? S.courses.map(function(c){
           var f = formById(c.fm);
-          var nmat = MAT.files.filter(function(x){ return x.course === c.code; }).length;
+          var nmat = (MAT.files || []).filter(function(x){ return x.course === c.code; }).length;
           return '<tr><td class="code">' + esc(c.code) + '</td>'
             + '<td><b>' + esc(c.nm) + '</b></td>'
             + '<td style="font-size:11.5px; color:var(--ink-2)">' + esc(c.kind) + '</td>'
@@ -2445,14 +2449,14 @@ tr.clickable:hover td{background:var(--surface-2)}
       +   '<dt>교육일자</dt><dd>' + esc(s.date) + '</dd>'
       +   '<dt>시간</dt><dd>' + (s.start ? esc(s.start) + ' ~ ' + esc(s.end) + ' (' + esc(s.hrs) + '시간)' : '<span style="color:var(--ink-3)">미입력</span>') + '</dd>'
       +   '<dt>강사</dt><dd>' + esc(s.teacher || '—') + '</dd>'
-      +   '<dt>교육장소</dt><dd>' + esc(s.place || '—') + '</dd>'
+      +   (s.place ? '<dt>교육장소</dt><dd>' + esc(s.place) + '</dd>' : '')
       +   '<dt>참석</dt><dd><b>' + esc(s.attend || 0) + '명</b>' + (tgt(s.target) ? ' <span style="color:var(--ink-3)">/ 대상 ' + esc(tgt(s.target)) + '명</span>' : '') + '</dd>'
       +   '<dt>등록</dt><dd>' + esc(s.via || '—') + '</dd>'
       + '</dl>'
       + '<h3 style="font-size:12px; color:var(--ink-3); margin:16px 0 6px">교육 내용 — 결과보고서에 그대로 들어갑니다</h3>'
       + '<div class="cbody" style="border:1px solid var(--line); border-radius:var(--r); padding:10px 12px">' + esc(s.body || '—') + '</div>'
       + '</div>'
-      + '<div><div class="qrimg" style="text-align:center">' + qrSvg(url, 170) + '</div>'
+      + '<div class="qrcol"><div class="qrimg" style="text-align:center">' + qrSvg(url, 170) + '</div>'
       + '<p class="hint" style="margin-top:8px">' + esc(s.courseNm) + ' 과정 공용 QR입니다. 차수마다 새로 만들지 않습니다.</p>'
       + '<div class="qrurl" style="margin-top:6px">' + esc(url) + '</div>'
       + '<button class="btn sm" id="detQr" style="margin-top:8px">크게 보기 · 인쇄</button>'
@@ -3317,7 +3321,7 @@ tr.clickable:hover td{background:var(--surface-2)}
   function loadMaterials(){
     return apiGet({ mode:'materials', token:S.token }).then(function(r){
       if(!r.ok){ toast(r.error, true); return; }
-      MAT.files = r.files;
+      MAT.files = r.files || [];
       drawCourses();
       if(!$('matPanel').hidden) drawMaterials();
     });
