@@ -162,6 +162,7 @@ textarea.inp{line-height:1.6; resize:vertical}
   box-shadow:var(--band-sh); padding-bottom:16px; position:relative; z-index:5;
 }
 .cats{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; padding:16px 24px 0; width:100%}
+.cats.n3{grid-template-columns:repeat(3,1fr)}
 .cat{
   display:flex; flex-direction:column; gap:2px; align-items:flex-start; text-align:left;
   background:linear-gradient(180deg, var(--cat-top), var(--cat-bot));
@@ -601,7 +602,8 @@ tr.clickable:hover td{background:var(--surface-2)}
     <div class="msg err" id="lgMsg" hidden></div>
     <p class="loginfoot">
       로그인은 하루 동안 유지됩니다.<br>
-      비밀번호를 잊으셨으면 안전보건팀에 초기화를 요청하세요.
+      비밀번호를 잊으셨으면 안전보건팀에 초기화를 요청하세요.<br>
+      로그인한 뒤에는 오른쪽 위의 자기 이름을 눌러 비밀번호를 바꿀 수 있습니다.
     </p>
   </div>
 </div>
@@ -612,7 +614,7 @@ tr.clickable:hover td{background:var(--surface-2)}
     <img class="hlogo" src="data:image/png;base64,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" alt="CHM">
     <div class="hnm"><b>교육관리 시스템</b><span>CHM · CHMS</span></div>
     <span class="spacer"></span>
-    <button class="whoami" id="whoami" title="내 계정">—</button>
+    <button class="whoami" id="whoami" title="내 계정 · 비밀번호 변경">—</button>
     <button class="btn sm" id="btnReload">새로고침</button>
     <button class="btn sm" id="btnLogout">로그아웃</button>
   </header>
@@ -734,8 +736,8 @@ tr.clickable:hover td{background:var(--surface-2)}
                   <span class="spacer"></span>
                   <button class="btn sm primary" id="acctAdd">계정 추가</button>
                 </div>
-                <div class="tscroll"><table id="acctTable" style="min-width:894px"></table></div>
-                <p class="hint">비밀번호는 서버에서 해시로만 보관합니다. 새로 만든 계정은 첫 로그인 후 본인이 바꾸게 하세요.</p>
+                <div class="tscroll"><table id="acctTable" style="min-width:977px"></table></div>
+                <p class="hint">비밀번호는 <b>본인이</b> 화면 오른쪽 위의 자기 이름을 눌러 바꿉니다. 잊어버린 사람은 여기서 <b>[비번 초기화]</b>를 눌러 되돌려 주고, 나온 초기 비밀번호를 알려주세요. 비밀번호는 서버에 해시로만 보관하므로 예전 것을 다시 알려줄 수는 없습니다. <b>일반</b> 권한은 설정을 뺀 나머지(현황·결과관리·등록관리)를 모두 쓸 수 있습니다.</p>
               </div>
 
             </div>
@@ -1172,6 +1174,7 @@ tr.clickable:hover td{background:var(--surface-2)}
    * ============================================================ */
   function renderAll(){
     drawWho();
+    applyRole();
     drawHome();
     drawSites();
     drawCourses();
@@ -1181,6 +1184,16 @@ tr.clickable:hover td{background:var(--surface-2)}
     drawConfig();
   }
 
+  /* 일반 사용자는 설정을 쓰지 않는다 — 카드부터 감춘다 */
+  function isMaster(){ return !!(S.user && S.user.role === 'master'); }
+  function applyRole(){
+    var master = isMaster();
+    var setCard = document.querySelector('.cat[data-cat="set"]');
+    if(setCard) setCard.hidden = !master;
+    $('cats').classList.toggle('n3', !master);
+    if(!master && CATOF[CUR] === 'set') go('home');
+  }
+
   function drawWho(){
     var u = S.user || {};
     var w = $('whoami');
@@ -1188,7 +1201,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       + esc(u.id || '') + ' · ' + (u.role === 'master' ? '마스터' : '일반') + '</span>';
     w.classList.toggle('temp', !!u.tempPw);
     if(u.tempPw) w.title = '초기 비밀번호를 쓰고 있습니다. 눌러서 바꿔주세요.';
-    $('railFoot').innerHTML = '7단계 · 카드 메뉴 입체 · 보라 &nbsp;/&nbsp; ' + esc(u.name || '');
+    $('railFoot').innerHTML = '7단계 · 권한 · 비밀번호 &nbsp;/&nbsp; ' + esc(u.name || '');
   }
 
   /* 설정 맨 아래 — 웹앱 주소와 서버 버전 (배포 확인용) */
@@ -1647,7 +1660,7 @@ tr.clickable:hover td{background:var(--surface-2)}
     $('acctTable').innerHTML =
       '<thead><tr><th style="width:113px">아이디</th><th style="width:113px">이름</th><th style="width:130px">소속</th>'
       + '<th style="width:94px">권한</th><th style="width:177px">최근 로그인</th><th style="width:90px">상태</th>'
-      + '<th style="width:177px"></th></tr></thead><tbody>'
+      + '<th style="width:260px"></th></tr></thead><tbody>'
       + S.users.map(function(u){
           var d = u.lastLogin ? new Date(u.lastLogin) : null;
           var ds = d ? (d.getFullYear() + '-' + p2(d.getMonth()+1) + '-' + p2(d.getDate()) + ' ' + p2(d.getHours()) + ':' + p2(d.getMinutes())) : '—';
@@ -1658,12 +1671,17 @@ tr.clickable:hover td{background:var(--surface-2)}
             + '<td class="code">' + ds + '</td>'
             + '<td>' + (u.state === '사용' ? '<span class="chip good">사용</span>' : '<span class="chip plain">중지</span>')
             +   (u.tempPw ? ' <span class="chip warn">초기</span>' : '') + '</td>'
-            + '<td class="acts"><button class="btn sm" data-edit="' + esc(u.id) + '">수정</button></td></tr>';
+            + '<td class="acts"><button class="btn sm" data-edit="' + esc(u.id) + '">수정</button>'
+            +   (u.id === (S.user && S.user.id) ? ''
+                  : ' <button class="btn sm" data-pwr="' + esc(u.id) + '">비번 초기화</button>') + '</td></tr>';
         }).join('')
       + '</tbody>';
 
     bind($('acctTable'), 'data-edit', function(id){
       openAcctDlg(S.users.filter(function(u){ return u.id === id; })[0]);
+    });
+    bind($('acctTable'), 'data-pwr', function(id){
+      openPwResetDlg(S.users.filter(function(u){ return u.id === id; })[0]);
     });
   }
   function p2(n){ return ('0' + n).slice(-2); }
@@ -1692,6 +1710,24 @@ tr.clickable:hover td{background:var(--surface-2)}
           toast(r.message); close(); loadUsers();
         });
       });
+  }
+
+  /* ---------- 비밀번호 초기화 (마스터가 남의 것을) ---------- */
+  function openPwResetDlg(u){
+    if(!u) return;
+    dlg('비밀번호 초기화 — ' + esc(u.name) + ' (' + esc(u.id) + ')',
+      '<div class="msg info" style="margin-bottom:14px">이 계정의 비밀번호를 아래 값으로 되돌립니다. '
+      + '쓰던 비밀번호는 사라지고, 본인이 다음 로그인 때 새로 정하게 됩니다.</div>'
+      + '<div class="formrow"><label>초기 비밀번호</label><input class="inp" id="d_pw" value="chm2026!"></div>'
+      + '<p class="hint">초기화한 뒤 이 값을 본인에게 알려주세요. 로그인하면 오른쪽 위 이름을 눌러 바꿀 수 있습니다.</p>',
+      function(close){
+        var pw = $('d_pw').value.trim();
+        if(pw.length < 6) return toast('초기 비밀번호는 6자 이상으로 적어주세요.', true);
+        apiPost({ mode:'pwReset', id:u.id, pw:pw }).then(function(r){
+          if(!r.ok) return toast(r.error, true);
+          toast(r.message); close(); loadUsers();
+        });
+      }, '초기화');
   }
 
   /* ---------- 내 계정 (비밀번호 변경) ---------- */
@@ -3496,7 +3532,13 @@ tr.clickable:hover td{background:var(--surface-2)}
     bind(box, 'data-sub', go);
   }
 
+  var CUR = 'home';
   function go(name){
+    if(CATOF[name] === 'set' && !isMaster()){
+      toast('설정은 마스터 권한이 있어야 볼 수 있습니다.', true);
+      name = 'home';
+    }
+    CUR = name;
     Array.prototype.forEach.call(document.querySelectorAll('.screen'), function(s){
       s.classList.toggle('on', s.id === 's-' + name);
     });
