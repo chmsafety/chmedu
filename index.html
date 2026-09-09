@@ -318,7 +318,10 @@ tr.clickable:hover td{background:var(--surface-2)}
 
 /* ---------- 모달 ---------- */
 .dlg{position:fixed; inset:0; z-index:150; background:rgba(8,14,11,.5); display:flex; align-items:center; justify-content:center; padding:20px}
-.dlg-box{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); width:430px; max-width:100%; max-height:88vh; overflow:auto; box-shadow:var(--shadow-2)}
+.dlg-box{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); width:520px; max-width:100%; max-height:88vh; overflow-y:auto; overflow-x:hidden; box-shadow:var(--shadow-2)}
+.dlg-box > *{min-width:0}
+.dlg-bd .row{min-width:0}
+.dlg-bd .inp{min-width:0}
 .dlg-hd{display:flex; align-items:center; gap:10px; padding:14px 16px; border-bottom:1px solid var(--line)}
 .dlg-hd h3{font-size:16.5px; font-weight:700; flex:1}
 .dlg-bd{padding:15px 16px}
@@ -469,10 +472,16 @@ tr.clickable:hover td{background:var(--surface-2)}
     <!-- 1. 사업장 -->
     <section class="stustep on" id="stu1">
       <div class="stucard">
-        <h2>사업장을 골라주세요</h2>
-        <div class="sub">근무하시는 사업장을 목록에서 고르시면 됩니다.</div>
-        <select class="inp bigsel" id="stuSiteSel" size="10"></select>
-        <input class="inp" id="stuSiteQ" placeholder="사업장 이름 검색" autocomplete="off" style="margin-top:10px">
+        <h2>회사와 사업장을 골라주세요</h2>
+        <div class="sub">먼저 회사를 고르시면 그 회사의 사업장만 보입니다.</div>
+        <div class="field"><label>회사 *</label>
+          <div class="pickrow" id="stuCo"></div>
+        </div>
+        <div class="field" id="stuSiteBox" hidden>
+          <label>사업장 *</label>
+          <select class="inp bigsel" id="stuSiteSel" size="10"></select>
+          <input class="inp" id="stuSiteQ" placeholder="사업장 이름 검색" autocomplete="off" style="margin-top:10px">
+        </div>
         <button class="btn primary stubtn" id="stuGo1" style="margin-top:12px" disabled>다음</button>
       </div>
     </section>
@@ -742,7 +751,7 @@ tr.clickable:hover td{background:var(--surface-2)}
           </div>
           <div class="panel-bd tight"><div class="tscroll"><table id="sesTable" style="min-width:998px"></table></div></div>
           <div class="panel-bd" style="padding-top:0">
-            <p class="hint"><b>임시</b>는 담당자가 미리 등록하지 않은 상태에서 QR이 먼저 찍혀 자동으로 만들어진 차수입니다. 눌러서 시간·강사·장소를 채워주시면 정식 차수가 됩니다.</p>
+            <p class="hint"><b>임시</b>는 담당자가 미리 등록하지 않은 상태에서 QR이 먼저 찍혀 자동으로 만들어진 차수입니다. 눌러서 시간·강사를 채워주시면 정식 차수가 됩니다.</p>
           </div>
         </div>
       </section>
@@ -1146,7 +1155,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       + esc(u.id || '') + ' · ' + (u.role === 'master' ? '마스터' : '일반') + '</span>';
     w.classList.toggle('temp', !!u.tempPw);
     if(u.tempPw) w.title = '초기 비밀번호를 쓰고 있습니다. 눌러서 바꿔주세요.';
-    $('railFoot').innerHTML = '7단계 · 선택 문항 · 보라 &nbsp;/&nbsp; ' + esc(u.name || '');
+    $('railFoot').innerHTML = '7단계 · 선택 문항 · 회사→사업장 &nbsp;/&nbsp; ' + esc(u.name || '');
   }
 
   /* 설정 맨 아래 — 웹앱 주소와 서버 버전 (배포 확인용) */
@@ -1362,6 +1371,12 @@ tr.clickable:hover td{background:var(--surface-2)}
       (q.texts || []).forEach(function(t){ if(String(t).trim()) out.push(String(t).trim()); });
     });
     return out;
+  }
+
+  /* 대상인원 — 예전에 적어둔 값이 있을 때만 보여준다 (등록 칸은 없앴다) */
+  function tgt(v){
+    var n = String(v === undefined || v === null ? '' : v).trim();
+    return (n === '' || n === '0') ? '' : n;
   }
 
   /* 유형은 척도 · 선택 · 주관식 세 가지. 모르는 값은 척도로 본다 */
@@ -2099,13 +2114,11 @@ tr.clickable:hover td{background:var(--surface-2)}
         }).join('')
       + '</select></div>'
       + '<div class="formrow"><label>교육일자 *</label><input class="inp" id="d_date" type="date" value="' + esc(d) + '"></div>'
-      + '<div class="formrow"><label>시간</label><div class="row" style="flex-wrap:nowrap">'
-      +   '<input class="inp" id="d_start" type="time" value="' + esc(s.start || '') + '">'
-      +   '<span style="color:var(--ink-3)">~</span>'
-      +   '<input class="inp" id="d_end" type="time" value="' + esc(s.end || '') + '"></div></div>'
+      + '<div class="formrow"><label>시간</label><div class="row" style="flex-wrap:nowrap; gap:6px">'
+      +   '<input class="inp" id="d_start" type="time" style="flex:1 1 0; min-width:0" value="' + esc(s.start || '') + '">'
+      +   '<span style="color:var(--ink-3); flex:0 0 auto">~</span>'
+      +   '<input class="inp" id="d_end" type="time" style="flex:1 1 0; min-width:0" value="' + esc(s.end || '') + '"></div></div>'
       + '<div class="formrow"><label>강사</label><input class="inp" id="d_teacher" value="' + esc(s.teacher || '') + '"></div>'
-      + '<div class="formrow"><label>교육장소</label><input class="inp" id="d_place" value="' + esc(s.place || '') + '"></div>'
-      + '<div class="formrow"><label>대상인원</label><input class="inp" id="d_target" inputmode="numeric" value="' + esc(s.target === undefined ? '' : s.target) + '"></div>'
       + (s.id
           ? '<div class="formrow"><label>상태</label><select class="inp" id="d_state">'
             + ['예정','완료'].map(function(x){ return '<option' + (s.state === x ? ' selected' : '') + '>' + x + '</option>'; }).join('')
@@ -2119,8 +2132,11 @@ tr.clickable:hover td{background:var(--surface-2)}
           siteCode:$('d_site').value, course:$('d_course').value,
           kind:$('d_kind').value,
           date:$('d_date').value, start:$('d_start').value, end:$('d_end').value,
-          teacher:$('d_teacher').value, place:$('d_place').value,
-          target:$('d_target').value, body:$('d_body').value,
+          teacher:$('d_teacher').value,
+          /* 교육장소·대상인원 칸은 없앴지만, 이미 들어 있던 값은 그대로 지킨다 */
+          place:(s.place === undefined ? '' : s.place),
+          target:(s.target === undefined ? '' : s.target),
+          body:$('d_body').value,
           state: $('d_state') ? $('d_state').value : ''
         }).then(function(r){
           if(!r.ok) return toast(r.error, true);
@@ -2170,7 +2186,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       + (s.state === '취소' ? '' : '<button class="btn sm danger" id="detDel">차수 취소</button>')
       + '</div>'
       + (s.state === '임시'
-          ? '<div class="panel-bd" style="padding-bottom:0"><div class="msg info">QR이 먼저 찍혀 자동으로 만들어진 차수입니다. <b>수정</b>을 눌러 시간·강사·장소를 채워주세요.</div></div>'
+          ? '<div class="panel-bd" style="padding-bottom:0"><div class="msg info">QR이 먼저 찍혀 자동으로 만들어진 차수입니다. <b>수정</b>을 눌러 시간·강사를 채워주세요.</div></div>'
           : '')
       + '<div class="panel-bd"><div class="dgrid">'
       + '<div><dl class="kv">'
@@ -2180,7 +2196,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       +   '<dt>시간</dt><dd>' + (s.start ? esc(s.start) + ' ~ ' + esc(s.end) + ' (' + esc(s.hrs) + '시간)' : '<span style="color:var(--ink-3)">미입력</span>') + '</dd>'
       +   '<dt>강사</dt><dd>' + esc(s.teacher || '—') + '</dd>'
       +   '<dt>교육장소</dt><dd>' + esc(s.place || '—') + '</dd>'
-      +   '<dt>대상 / 참석</dt><dd>' + esc(s.target === '' ? '—' : s.target) + '명 / <b>' + esc(s.attend || 0) + '명</b></dd>'
+      +   '<dt>참석</dt><dd><b>' + esc(s.attend || 0) + '명</b>' + (tgt(s.target) ? ' <span style="color:var(--ink-3)">/ 대상 ' + esc(tgt(s.target)) + '명</span>' : '') + '</dd>'
       +   '<dt>등록</dt><dd>' + esc(s.via || '—') + '</dd>'
       + '</dl>'
       + '<h3 style="font-size:12px; color:var(--ink-3); margin:16px 0 6px">교육 내용 — 결과보고서에 그대로 들어갑니다</h3>'
@@ -2470,7 +2486,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       + '<tr><td class="lb">교육일자</td><td>' + esc(s.date) + '</td>'
       +     '<td class="lb">교육시간</td><td colspan="3">' + esc(time) + '</td></tr>'
       + '<tr><td class="lb">대　　상</td><td colspan="2">' + esc(s.co) + ' / ' + esc(s.site) + '</td>'
-      +     '<td class="lb">참석자 수</td><td class="ctr" colspan="2">' + esc(s.attend || 0) + '명 / ' + esc(s.target === '' ? '—' : s.target) + '명</td></tr>'
+      +     '<td class="lb">참석자 수</td><td class="ctr" colspan="2">' + esc(s.attend || 0) + '명' + (tgt(s.target) ? ' / ' + esc(tgt(s.target)) + '명' : '') + '</td></tr>'
       + '<tr><td class="lb">강　　사</td><td>' + esc(s.teacher || '—') + '</td>'
       +     '<td class="lb">교육장소</td><td>' + esc(s.place || '—') + '</td>'
       +     '<td class="lb">차 수 ID</td><td class="ctr" style="font-size:8.5pt">' + esc(s.id) + '</td></tr>'
@@ -2666,7 +2682,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       +     '<td class="lb">교육일자</td><td>' + esc(s.date) + (s.start ? '　' + esc(s.start) + '~' + esc(s.end) : '') + '</td></tr>'
       + '<tr><td class="lb">강　　사</td><td>' + esc(s.teacher || '—') + '</td>'
       +     '<td class="lb">교육장소</td><td>' + esc(s.place || '—') + '</td></tr>'
-      + '<tr><td class="lb">참석 인원</td><td>' + d.people.length + '명 / 대상 ' + esc(s.target === '' || s.target === undefined ? '—' : s.target) + '명</td>'
+      + '<tr><td class="lb">참석 인원</td><td>' + d.people.length + '명' + (tgt(s.target) ? ' / 대상 ' + esc(tgt(s.target)) + '명' : '') + '</td>'
       +     '<td class="lb">차 수 ID</td><td style="font-size:8.5pt">' + esc(s.id) + '</td></tr>'
       + '</tbody></table>'
 
@@ -3039,7 +3055,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       + '<dt>교육구분</dt><dd>' + esc(s.kind || '—') + '</dd>'
       + '<dt>강사</dt><dd>' + esc(s.teacher || '—') + '</dd>'
       + '<dt>교육시간</dt><dd>' + esc(s.hrs === '' || s.hrs === undefined ? '—' : s.hrs + '시간') + '</dd>'
-      + '<dt>참석 / 대상</dt><dd><b>' + esc(s.attend || 0) + '명</b> / ' + esc(s.target === '' || s.target === undefined ? '—' : s.target) + '명</dd>'
+      + '<dt>참석</dt><dd><b>' + esc(s.attend || 0) + '명</b>' + (tgt(s.target) ? ' / 대상 ' + esc(tgt(s.target)) + '명' : '') + '</dd>'
       + '<dt>평균 평점</dt><dd>' + (s.score ? esc(s.score) + ' / 5.0' : '—') + '</dd>'
       + '<dt>상태</dt><dd><span class="chip ' + (STCHIP[s.state] || 'plain') + '">' + esc(s.state) + '</span></dd>'
       + '</dl>', '차수 상세 보기', function(){ openDetail(s.id); });
@@ -3127,7 +3143,7 @@ tr.clickable:hover td{background:var(--surface-2)}
   /* ============================================================
    *  교육생 화면 (QR)
    * ============================================================ */
-  var STU = { code:'', course:null, questions:[], sites:[], co:'', site:'', job:'', ten:'', sessionId:'', answers:{} };
+  var STU = { code:'', course:null, questions:[], sites:[], coPick:'', co:'', site:'', job:'', ten:'', sessionId:'', answers:{} };
 
   function stuStep(id){
     Array.prototype.forEach.call(document.querySelectorAll('.stustep'), function(s){
@@ -3137,8 +3153,27 @@ tr.clickable:hover td{background:var(--surface-2)}
   }
   function stuErr(id, msg){
     var b = $(id);
-    if(!msg){ b.hidden = true; return; }
+    if(!msg){ b.hidden = true; b.className = 'msg err'; return; }
+    b.className = 'msg err';
     b.textContent = msg; b.hidden = false;
+  }
+
+  /* 보내는 동안 「기다려 주세요」를 알려준다 — 구글 서버는 5~10초 걸릴 때가 있다 */
+  function stuWait(id, first){
+    var b = $(id);
+    b.className = 'msg info';
+    b.textContent = first;
+    b.hidden = false;
+    var t1 = setTimeout(function(){
+      b.textContent = '서버에 저장하는 중입니다. 조금만 더 기다려 주세요.';
+    }, 4000);
+    var t2 = setTimeout(function(){
+      b.textContent = '거의 다 됐습니다. 화면을 닫지 마시고 그대로 기다려 주세요.';
+    }, 10000);
+    return function(){
+      clearTimeout(t1); clearTimeout(t2);
+      b.hidden = true; b.className = 'msg err';
+    };
   }
 
   function startStudent(code){
@@ -3155,24 +3190,49 @@ tr.clickable:hover td{background:var(--surface-2)}
         return;
       }
       STU.course = r.course; STU.questions = r.questions; STU.sites = r.sites;
-      drawStuSites();
+      drawStuCos();
       $('stuCourse').textContent = r.course.nm;
       $('stuSub').textContent = r.course.kind + ' · 출석과 설문을 한 번에 받습니다';
       initSign();
     });
   }
 
-  function drawStuSites(){
-    var q = $('stuSiteQ').value.trim();
-    var list = STU.sites.filter(function(s){ return !q || s.nm.indexOf(q) >= 0; });
-    var co = '', h = '';
-    list.forEach(function(s){
-      if(s.co !== co){ if(co) h += '</optgroup>'; h += '<optgroup label="' + esc(s.co) + '">'; co = s.co; }
-      h += '<option value="' + esc(s.co + '|' + s.nm) + '"'
-        + (STU.co + '|' + STU.site === s.co + '|' + s.nm ? ' selected' : '') + '>' + esc(s.nm) + '</option>';
+  /* 1단계 — 회사 먼저 고른다 */
+  function drawStuCos(){
+    var cos = [];
+    STU.sites.forEach(function(s){ if(cos.indexOf(s.co) < 0) cos.push(s.co); });
+    $('stuCo').innerHTML = cos.map(function(c){
+      return '<button type="button" data-co="' + esc(c) + '"' + (STU.coPick === c ? ' class="on"' : '') + '>' + esc(c) + '</button>';
+    }).join('') || '<span class="hint">등록된 사업장이 없습니다</span>';
+    bind($('stuCo'), 'data-co', pickStuCo);
+    if(cos.length === 1 && !STU.coPick) pickStuCo(cos[0]);   /* 회사가 하나뿐이면 건너뛴다 */
+    else drawStuSites();
+  }
+
+  function pickStuCo(c){
+    if(STU.coPick !== c){ STU.co = ''; STU.site = ''; }
+    STU.coPick = c;
+    Array.prototype.forEach.call($('stuCo').children, function(b){
+      if(b.getAttribute) b.classList.toggle('on', b.getAttribute('data-co') === c);
     });
-    if(co) h += '</optgroup>';
-    $('stuSiteSel').innerHTML = h || '<option disabled>찾는 사업장이 없습니다</option>';
+    $('stuSiteQ').value = '';
+    drawStuSites();
+  }
+
+  /* 2단계 — 고른 회사의 사업장만 보여준다 */
+  function drawStuSites(){
+    var box = $('stuSiteBox');
+    box.hidden = !STU.coPick;
+    if(!STU.coPick){ $('stuGo1').disabled = true; return; }
+
+    var q = $('stuSiteQ').value.trim();
+    var list = STU.sites.filter(function(s){
+      return s.co === STU.coPick && (!q || s.nm.indexOf(q) >= 0);
+    });
+    $('stuSiteSel').innerHTML = list.map(function(s){
+      return '<option value="' + esc(s.co + '|' + s.nm) + '"'
+        + (STU.co === s.co && STU.site === s.nm ? ' selected' : '') + '>' + esc(s.nm) + '</option>';
+    }).join('') || '<option disabled>찾는 사업장이 없습니다</option>';
     syncStuSite();
   }
 
@@ -3231,6 +3291,7 @@ tr.clickable:hover td{background:var(--surface-2)}
 
     var btn = $('stuGo2'), old = btn.textContent;
     btn.disabled = true; btn.textContent = '보내는 중…';
+    var doneWait = stuWait('stuMsg2', '출석을 저장하고 있습니다. 서명을 올리느라 5~10초쯤 걸릴 수 있으니 잠시만 기다려 주세요.');
 
     apiPost({
       mode:'attend', c:STU.code, course:STU.code, co:STU.co, site:STU.site,
@@ -3238,6 +3299,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       sign:$('signPad').toDataURL('image/png'),
       id:sessionId || ''
     }).then(function(r){
+      doneWait();
       btn.disabled = false; btn.textContent = old;
       if(!r.ok) return stuErr('stuMsg2', r.error);
 
@@ -3325,9 +3387,11 @@ tr.clickable:hover td{background:var(--surface-2)}
 
     var btn = $('stuGo3'), old = btn.textContent;
     btn.disabled = true; btn.textContent = '보내는 중…';
+    var doneWait = stuWait('stuMsg3', '설문을 보내고 있습니다. 5초쯤 걸릴 수 있으니 잠시만 기다려 주세요.');
 
     apiPost({ mode:'survey', id:STU.sessionId, bkey:browserKey(), answers:answers })
       .then(function(r){
+        doneWait();
         btn.disabled = false; btn.textContent = old;
         if(!r.ok) return stuErr('stuMsg3', r.error);
         $('stuDoneMsg').textContent = r.message || '참여해 주셔서 고맙습니다.';
