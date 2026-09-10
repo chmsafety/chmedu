@@ -936,6 +936,7 @@ tr.clickable:hover td{background:var(--surface-2)}
             <button class="btn" id="mGo">조회</button>
             <span class="spacer"></span>
             <button class="btn" id="mPrint">인쇄</button>
+            <button class="btn" id="mDown">파일 다운</button>
             <button class="btn primary" id="mSend">PDF 만들어 발송</button>
           </div>
         </div></div>
@@ -1241,7 +1242,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       + esc(u.id || '') + ' · ' + (u.role === 'master' ? '마스터' : '일반') + '</span>';
     w.classList.toggle('temp', !!u.tempPw);
     if(u.tempPw) w.title = '초기 비밀번호를 쓰고 있습니다. 눌러서 바꿔주세요.';
-    $('railFoot').innerHTML = '7단계 · 보고서 칸 늘어남 &nbsp;/&nbsp; ' + esc(u.name || '');
+    $('railFoot').innerHTML = '7단계 · 보고서 칸 늘어남 2 &nbsp;/&nbsp; ' + esc(u.name || '');
   }
 
   /* 설정 맨 아래 — 웹앱 주소와 서버 버전 (배포 확인용) */
@@ -2664,7 +2665,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       +       '<p class="hint">긴 쪽 1400px 로 줄여서 올립니다.</p></div>'
       +   '</div></div>'
 
-      +   '<div class="panel"><div class="panel-hd"><h2>메일 보내기</h2></div>'
+      +   '<div class="panel"><div class="panel-hd"><h2>저장 · 발송</h2></div>'
       +   '<div class="panel-bd">'
       +     (REP.mails.length
         ? '<p class="hint" style="margin:0"><b>설정 › 관리자(메일) 관리</b>에 등록된 곳으로 보냅니다.</p>'
@@ -2672,12 +2673,15 @@ tr.clickable:hover td{background:var(--surface-2)}
           + '<input class="inp" id="repMemo" placeholder="메일 본문 끝에 한 줄 들어갑니다"></div>'
         : '<div class="msg info">받는 곳이 없습니다. <b>설정 › 관리자(메일) 관리</b>에서 먼저 등록해 주세요.</div>')
       +     '<div class="row" style="margin-top:14px; gap:8px">'
-      +       '<button class="btn" id="repSave">저장</button>'
+      +       '<button class="btn primary" id="repSave">저장</button>'
       +       '<button class="btn" id="repPrint">인쇄</button>'
       +       '<span class="spacer"></span>'
-      +       '<button class="btn primary" id="repSend"' + (REP.mails.length ? '' : ' disabled') + '>PDF 만들어 발송</button>'
+      +       '<button class="btn" id="repDown">파일 다운</button>'
       +     '</div>'
-      +     '<p class="hint" style="margin-top:8px">왼쪽에 보이는 그대로 PDF 가 됩니다.</p>'
+      +     '<p class="hint" style="margin-top:8px">왼쪽에 보이는 그대로 PDF 가 됩니다. '
+      +       (REP.mails.length
+          ? '<b>저장</b>을 누르면 PDF 를 만들어 등록된 곳으로 바로 보냅니다.'
+          : '<b>저장</b>만 되고 메일은 나가지 않습니다 — 받는 곳을 먼저 등록해 주세요.') + '</p>'
       +   '</div></div>'
       + '</div>'
 
@@ -2705,9 +2709,11 @@ tr.clickable:hover td{background:var(--surface-2)}
       });
     });
 
-    $('repSave').addEventListener('click', function(){ repSave(true); });
+    $('repSave').addEventListener('click', repSaveSend);
     $('repPrint').addEventListener('click', repPrint);
-    if($('repSend')) $('repSend').addEventListener('click', repSend);
+    $('repDown').addEventListener('click', function(){
+      downloadPdf($('a4'), '교육결과보고서_' + s.site + '_' + s.date, $('repDown'));
+    });
   }
 
   function paintPhoto(n){
@@ -2760,17 +2766,16 @@ tr.clickable:hover td{background:var(--surface-2)}
       var q = scales[i];
       scRows += '<tr>'
         + (i === 0 ? '<td class="lb" rowspan="' + scN + '">항목별<br>점수</td>' : '')
-        + '<td colspan="4" class="rowh" style="font-size:9.5pt"><span class="clip" style="height:5.4mm">' + (q ? esc(q.t) : '') + '</span></td>'
+        + '<td colspan="4" class="rowh" style="font-size:9.5pt"><span class="grow" style="min-height:5.4mm">' + (q ? esc(q.t) : '') + '</span></td>'
         + '<td class="ctr">' + (q && q.avg ? '<b>' + q.avg.toFixed(1) + '</b> / 5.0' : '') + '</td>'
         + '</tr>';
     }
 
-    /* 기타 의견 — 줄로 나누지 않고 한 칸에 모아 적는다 */
-    var TX_MAX = 12;
-    var shown = texts.slice(0, TX_MAX).map(function(t){ return esc(t); });
-    if(texts.length > TX_MAX) shown.push('외 ' + (texts.length - TX_MAX) + '건');
+    /* 기타 의견 — 줄로 나누지 않고 한 칸에 모아 적는다. 많으면 칸이 늘어난다 */
+    var shown = texts.map(function(t){ return esc(t); });
     var txRows = '<tr><td class="lb">기타<br>의견</td>'
-      + '<td colspan="5" style="font-size:9.5pt"><span class="clip" style="height:27mm; line-height:1.45">'
+      + '<td colspan="5" style="font-size:9.5pt; vertical-align:top">'
+      +   '<span class="grow" style="min-height:27mm; line-height:1.45">'
       +   (shown.length ? shown.join('<br>') : '')
       + '</span></td></tr>';
 
@@ -2854,12 +2859,21 @@ tr.clickable:hover td{background:var(--surface-2)}
       .then(function(){ return loadLib('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'); });
   }
 
-  function repSend(){
+  /**
+   * [저장] — 적은 내용을 저장하고, 이어서 PDF 를 만들어 등록된 곳으로 보낸다.
+   * 받는 곳이 없으면 저장까지만 하고 알려 준다.
+   */
+  function repSaveSend(){
     var mails = (REP.mails || []).slice();
-    if(!mails.length) return toast('설정 › 관리자(메일) 관리에서 받는 곳을 먼저 등록해 주세요.', true);
-
-    var btn = $('repSend'), old = btn.textContent;
+    var btn = $('repSave'), old = btn.textContent;
     btn.disabled = true; btn.textContent = '저장 중…';
+
+    if(!mails.length){
+      return repSave(true).then(function(){
+        btn.disabled = false; btn.textContent = old;
+        toast('저장했습니다. 받는 곳이 없어 메일은 보내지 않았습니다.');
+      }).catch(function(){ btn.disabled = false; btn.textContent = old; });
+    }
 
     repSave(false).then(function(r){
       if(!r || !r.ok){ btn.disabled = false; btn.textContent = old; return; }
@@ -2899,27 +2913,49 @@ tr.clickable:hover td{background:var(--surface-2)}
       var W = 210, H = 297;
       var imgH = canvas.height * W / canvas.width;
 
-      if(imgH <= H + 0.5){
-        /* 한 장에 들어간다 */
-        doc.addImage(img, 'JPEG', 0, 0, W, imgH, undefined, 'FAST');
-      } else if(imgH <= H * 1.15){
-        /* 조금 넘칠 때는 살짝 줄여 한 장에 담는다 — 보고서는 A4 한 장이 기본 */
-        var w2 = W * H / imgH;
-        doc.addImage(img, 'JPEG', (W - w2) / 2, 0, w2, H, undefined, 'FAST');
-      } else {
-        /* 많이 길어지면 다음 장으로 이어 붙인다 (찌그러뜨리지 않는다) */
-        doc.addImage(img, 'JPEG', 0, 0, W, imgH, undefined, 'FAST');
-        var left = imgH - H, top = 0;
-        while(left > 0.5){
-          top -= H;
-          doc.addPage();
-          doc.addImage(img, 'JPEG', 0, top, W, imgH, undefined, 'FAST');
-          left -= H;
-        }
+      /* 넘치면 줄이지 않고 다음 장으로 이어 붙인다 — 두 장이 되어도 괜찮다 */
+      doc.addImage(img, 'JPEG', 0, 0, W, imgH, undefined, 'FAST');
+      var left = imgH - H, top = 0;
+      while(left > 0.5){
+        top -= H;
+        doc.addPage();
+        doc.addImage(img, 'JPEG', 0, top, W, imgH, undefined, 'FAST');
+        left -= H;
       }
 
       var out = doc.output('datauristring');
       return 'data:application/pdf;base64,' + out.slice(out.indexOf('base64,') + 7);
+    });
+  }
+
+  /* PDF 내려받기 — data URL 대신 Blob 으로 바꿔 큰 파일도 안전하게 */
+  function pdfToBlobUrl(dataUrl){
+    var b64 = dataUrl.slice(dataUrl.indexOf('base64,') + 7);
+    var bin = atob(b64);
+    var arr = new Uint8Array(bin.length);
+    for(var i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+    return URL.createObjectURL(new Blob([arr], { type:'application/pdf' }));
+  }
+
+  function safeName(s){
+    return String(s || '').replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, ' ').trim();
+  }
+
+  /** el 을 PDF 로 만들어 내려받는다. 버튼은 누르는 동안 잠근다 */
+  function downloadPdf(el, name, btn){
+    var old = btn ? btn.textContent : '';
+    if(btn){ btn.disabled = true; btn.textContent = 'PDF 만드는 중…'; }
+    return pdfFrom(el).then(function(pdf){
+      var url = pdfToBlobUrl(pdf);
+      var a = document.createElement('a');
+      a.href = url; a.download = safeName(name) + '.pdf';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+      if(btn){ btn.disabled = false; btn.textContent = old; }
+      toast('내려받았습니다.');
+    }).catch(function(){
+      if(btn){ btn.disabled = false; btn.textContent = old; }
+      toast('PDF 를 만들지 못했습니다. 잠시 뒤 다시 시도해 주세요.', true);
     });
   }
 
@@ -2977,6 +3013,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       +     mailPicker(admins)
       +     '<div class="row" style="margin-top:14px; gap:8px">'
       +       '<button class="btn" id="attPrint">인쇄</button>'
+      +       '<button class="btn" id="attDown">파일 다운</button>'
       +       '<span class="spacer"></span>'
       +       '<button class="btn primary" id="attSend"' + (admins.length ? '' : ' disabled') + '>PDF 만들어 발송</button>'
       +     '</div>'
@@ -2986,6 +3023,9 @@ tr.clickable:hover td{background:var(--surface-2)}
 
     attPaper();
     $('attPrint').addEventListener('click', function(){ printEl($('a4att')); });
+    $('attDown').addEventListener('click', function(){
+      downloadPdf($('a4att'), '출석부_' + (d.session ? d.session.site + '_' + d.session.date : ATT.id), $('attDown'));
+    });
     if($('attSend')) $('attSend').addEventListener('click', attSend);
   }
 
@@ -3819,6 +3859,10 @@ tr.clickable:hover td{background:var(--surface-2)}
   $('attBack').addEventListener('click', function(){ go('result'); });
   $('mGo').addEventListener('click', loadMonthly);
   $('mPrint').addEventListener('click', function(){ if($('a4mon')) printEl($('a4mon')); else toast('먼저 [조회]를 눌러주세요.', true); });
+  $('mDown').addEventListener('click', function(){
+    if(!$('a4mon')) return toast('먼저 [조회]를 눌러주세요.', true);
+    downloadPdf($('a4mon'), '월간교육결과보고_' + $('mY').value + '-' + ('0' + $('mM').value).slice(-2), $('mDown'));
+  });
   $('mSend').addEventListener('click', monSend);
   $('smsAdd').addEventListener('click', function(){ openSmsDlg(null); });
 
