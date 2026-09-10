@@ -388,12 +388,16 @@ tr.clickable:hover td{background:var(--surface-2)}
 .replay{display:flex; gap:18px; align-items:flex-start}
 /* 담당자 작성란은 오른쪽, A4 미리보기는 왼쪽 — 좁은 화면(≤1300px)에서는 위아래로 바뀌고
    그때는 order 가 먹지 않으므로 적는 칸이 먼저 나온다 */
-.repform{flex:0 0 430px; min-width:0; order:2}
-.reppaper{flex:1 1 auto; min-width:0; overflow:auto; padding-bottom:8px; order:1}
+/* 작성란 폭 602px(예전 430px 의 1.4배). 화면이 좁으면 A4 는 그대로 두고 작성란만 430px 까지 줄어든다 */
+.repform{flex:0 1 602px; min-width:430px; order:2}
+.reppaper{flex:1 0 auto; min-width:0; overflow:auto; padding-bottom:8px; order:1}
+.replbl{display:flex; align-items:center; gap:8px; margin-bottom:4px}
+.replbl label{font-size:14px; color:var(--ink-2)}
+.replbl .btn{margin-left:auto; padding:3px 9px; font-size:13px}
 /* A4 를 남는 자리 가운데로 — 담당자 작성란과 너무 떨어져 보이지 않게.
    종이가 자리보다 넓어지면 auto 여백이 0 이 되어 그냥 왼쪽에 붙는다(잘리지 않는다) */
 .reppaper > .a4{margin-left:auto; margin-right:auto}
-@media (max-width:1300px){ .replay{display:block} .repform{width:auto} .reppaper{margin-top:16px} }
+@media (max-width:1320px){ .replay{display:block} .repform{width:auto; min-width:0} .reppaper{margin-top:16px} }
 .thumb{position:relative; border:1px solid var(--line); border-radius:var(--r); height:104px; display:flex; align-items:center; justify-content:center; overflow:hidden; background:var(--surface-2); cursor:pointer}
 .thumb img{width:100%; height:100%; object-fit:cover}
 .thumb span{font-size:13.5px; color:var(--ink-3)}
@@ -1249,7 +1253,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       + esc(u.id || '') + ' · ' + (u.role === 'master' ? '마스터' : '일반') + '</span>';
     w.classList.toggle('temp', !!u.tempPw);
     if(u.tempPw) w.title = '초기 비밀번호를 쓰고 있습니다. 눌러서 바꿔주세요.';
-    $('railFoot').innerHTML = '7단계 · 보고서 손질 3 &nbsp;/&nbsp; ' + esc(u.name || '');
+    $('railFoot').innerHTML = '7단계 · 보고서 손질 4 &nbsp;/&nbsp; ' + esc(u.name || '');
   }
 
   /* 설정 맨 아래 — 웹앱 주소와 서버 버전 (배포 확인용) */
@@ -2651,13 +2655,15 @@ tr.clickable:hover td{background:var(--surface-2)}
 
   /* ---------- 불러오기 ---------- */
   function openReport(id){
-    REP = { id:id, d:null, mood:'', note:'', ph:[null,null], phDel:[false,false], phNew:[false,false] };
+    REP = { id:id, d:null, body:'', mood:'', note:'', ph:[null,null], phDel:[false,false], phNew:[false,false] };
     go('report');
     $('repBody').innerHTML = '<div class="panel"><div class="panel-bd"><div class="soon">불러오는 중…</div></div></div>';
 
     apiGet({ mode:'report', token:S.token, id:id }).then(function(r){
       if(!r.ok){ toast(r.error, true); go('result'); return; }
       REP.d = r;
+      /* 1. 교육 내용 — 차수에 적힌 값, 없으면 과정에 적어 둔 값으로 미리 채운다 */
+      REP.body = String(r.session.body || '').trim() ? String(r.session.body) : repCourseBody();
       REP.mood = r.report.mood || '';
       REP.note = r.report.note || '';
       drawReport();
@@ -2692,6 +2698,12 @@ tr.clickable:hover td{background:var(--surface-2)}
       +     '<span class="sub">' + esc(s.date) + ' · ' + esc(s.site) + '</span></div>'
       +   '<div class="panel-bd">'
       +     (sent ? '<div class="msg ok" style="margin-bottom:12px">' + esc(sent) + ' 에 발송했습니다.</div>' : '')
+      +     '<div class="formrow" style="display:block">'
+      +       '<div class="replbl"><label for="repBodyIn">1. 교육 내용</label>'
+      +         (repCourseBody() ? '<button type="button" class="btn" id="repBodyReset" title="과정 등록 때 적어 둔 내용으로 다시 채웁니다">과정 내용으로 되돌리기</button>' : '')
+      +       '</div>'
+      +       '<textarea class="inp" id="repBodyIn" rows="5">' + esc(REP.body) + '</textarea>'
+      +       '<p class="hint" style="margin:4px 0 0">과정에 적어 둔 내용이 미리 들어가 있습니다. 이 차수만 다르면 고쳐 주세요 — 저장하면 차수 정보에도 반영됩니다.</p></div>'
       +     '<div class="formrow" style="display:block"><label>3사업장 및 교육 분위기</label>'
       +       '<textarea class="inp" id="repMood" rows="4">' + esc(REP.mood) + '</textarea></div>'
       +     '<div class="formrow" style="display:block"><label>4. 기타 특이사항</label>'
@@ -2732,6 +2744,12 @@ tr.clickable:hover td{background:var(--surface-2)}
     repPaper();
     paintPhoto(1); paintPhoto(2);
 
+    $('repBodyIn').addEventListener('input', function(){ REP.body = this.value; repPaper(); });
+    if($('repBodyReset')) $('repBodyReset').addEventListener('click', function(){
+      REP.body = repCourseBody();
+      $('repBodyIn').value = REP.body;
+      repPaper();
+    });
     $('repMood').addEventListener('input', function(){ REP.mood = this.value; repPaper(); });
     $('repNote').addEventListener('input', function(){ REP.note = this.value; repPaper(); });
     [1,2].forEach(function(n){
@@ -2853,7 +2871,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       +     '<td class="lb">차 수 ID</td><td class="ctr" style="font-size:8.5pt">' + esc(s.id) + '</td></tr>'
 
       + '<tr><td class="sec" colspan="6">1. 교육 내용</td></tr>'
-      + '<tr><td class="body" colspan="6"><span class="grow" style="min-height:18mm">' + esc(s.body || '') + '</span></td></tr>'
+      + '<tr><td class="body" colspan="6"><span class="grow" style="min-height:18mm">' + esc(REP.body || '') + '</span></td></tr>'
 
       + '<tr><td class="sec" colspan="6">2. 교육 결과</td></tr>'
       + '<tr><td class="lb">설문 참여</td><td class="ctr" colspan="2">' + esc(sv.count) + '명</td>'
@@ -2923,10 +2941,50 @@ tr.clickable:hover td{background:var(--surface-2)}
       if(REP.phDel[n-1]) body['photo' + n + 'Del'] = 'Y';
       else if(REP.phNew[n-1] && REP.ph[n-1]) body['photo' + n] = REP.ph[n-1];
     });
-    return apiPost(body).then(function(r){
+    /* 교육 내용은 차수 쪽(교육차수 시트)에, 나머지는 결과보고서 쪽에 — 둘을 동시에 보낸다 */
+    return Promise.all([repSaveBody(), apiPost(body)]).then(function(two){
+      var b = two[0], r = two[1];
       if(!r.ok){ toast(r.error, true); return r; }
+      if(!b.ok){ toast('교육 내용을 저장하지 못했습니다 — ' + b.error, true); return b; }
       if(tell) toast(r.message);
       REP.phDel = [false,false]; REP.phNew = [false,false];
+      return r;
+    });
+  }
+
+  /** 과정 등록 때 적어 둔 교육 내용 */
+  function repCourseBody(){
+    var code = REP && REP.d && REP.d.session ? REP.d.session.course : '';
+    var c = (S.courses || []).filter(function(x){ return x.code === code; })[0];
+    return c && c.body ? String(c.body) : '';
+  }
+
+  /**
+   * 1. 교육 내용 저장 — 바뀌었을 때만 차수 저장(sessionSave)을 부른다.
+   * 서버 코드를 새로 붙이지 않아도 되도록, 차수 수정 창과 똑같은 값을 그대로 실어 보낸다.
+   */
+  function repSaveBody(){
+    var s = REP.d.session;
+    var now = String(REP.body || '');
+    if(now.trim() === String(s.body || '').trim()) return Promise.resolve({ ok:true, same:true });
+    return apiPost({
+      mode:'sessionSave', id:s.id,
+      siteCode:s.siteCode, course:s.course, kind:s.kind || '',
+      date:s.date, start:s.start || '', end:s.end || '',
+      teacher:s.teacher || '',
+      place:(s.place === undefined || s.place === null ? '' : s.place),
+      target:(s.target === undefined || s.target === null ? '' : s.target),
+      body:now,
+      state:s.state || ''
+    }).then(function(r){
+      if(!r.ok) return r;
+      /* 비워서 저장하면 서버가 과정 내용으로 채운다 — 화면도 똑같이 맞춘다 */
+      if(!now.trim()){
+        REP.body = repCourseBody();
+        if($('repBodyIn')) $('repBodyIn').value = REP.body;
+        repPaper();
+      }
+      s.body = REP.body;
       return r;
     });
   }
@@ -2959,8 +3017,9 @@ tr.clickable:hover td{background:var(--surface-2)}
     btn.disabled = true; btn.textContent = '저장 중…';
 
     if(!mails.length){
-      return repSave(true).then(function(){
+      return repSave(false).then(function(r){
         btn.disabled = false; btn.textContent = old;
+        if(!r || !r.ok) return;   /* 실패 안내는 repSave 가 이미 띄웠다 */
         toast('저장했습니다. 받는 곳이 없어 메일은 보내지 않았습니다.');
       }).catch(function(){ btn.disabled = false; btn.textContent = old; });
     }
