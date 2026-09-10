@@ -404,7 +404,7 @@ tr.clickable:hover td{background:var(--surface-2)}
 .thumb .x{position:absolute; top:4px; right:4px; background:rgba(0,0,0,.55); color:#fff; border:0; border-radius:4px; font-size:12.5px; padding:2px 6px; cursor:pointer}
 
 /* A4 — 화면에 보이는 그대로 PDF 가 됩니다 */
-.a4{width:210mm; min-height:297mm; box-sizing:border-box; padding:10mm 12mm;
+.a4{position:relative; width:210mm; min-height:297mm; box-sizing:border-box; padding:10mm 12mm;
     background:#fff; color:#000; border:1px solid var(--line);
     font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-serif; font-size:10.5pt}
 .a4 .ttl{text-align:center; font-size:17pt; font-weight:800; letter-spacing:6px; margin:0 0 5mm}
@@ -426,8 +426,14 @@ tr.clickable:hover td{background:var(--surface-2)}
 .a4 .txb:last-child{margin-bottom:0}
 .a4 .txb .qt{font-weight:700}
 .a4 .txb .ln{padding-left:2mm}
-/* 사진이 쪽 경계에 걸릴 때 다음 장으로 밀어 주는 빈 줄 */
-.a4 .pgap td{border:0; padding:0; height:0}
+/* 쪽 나누기 — 걸치는 줄을 다음 장으로 미는 빈 줄 · 쪽 번호 · (화면에만) 자르는 선 */
+.a4 .pgbrk td{border:0; padding:0}
+/* 앱 표의 「마지막 줄 아래 선 없앰」 규칙이 결과보고서 표에도 먹어 사진 칸 아래 선이 빠져 있었다 */
+#a4 > table > tbody > tr:last-child > td{border-bottom:1px solid #000}
+.a4 div.pgbrk{display:block}
+.a4 .pgno{position:absolute; left:0; right:0; height:10mm; display:flex; align-items:center; justify-content:center;
+          font-size:9pt; color:#444; letter-spacing:1px; pointer-events:none}
+.a4 .pgcut{position:absolute; left:0; right:0; height:0; border-top:1px dashed #b9b9b9; pointer-events:none}
 .a4 .ph{height:28mm; text-align:center; padding:2px}
 .a4 .ph img{max-width:100%; max-height:26mm; object-fit:contain}
 .a4 .ph em{color:#999; font-style:normal; font-size:9pt}
@@ -481,6 +487,7 @@ tr.clickable:hover td{background:var(--surface-2)}
   body > *{display:none !important}
   #printroot{display:block !important; position:absolute; left:0; top:0; width:100%}
   #printroot .a4{border:0; margin:0}
+  #printroot .pgcut{display:none}
   @page{size:A4 portrait; margin:0}
 }
 .soon{padding:40px 20px; text-align:center; color:var(--ink-3)}
@@ -1253,7 +1260,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       + esc(u.id || '') + ' · ' + (u.role === 'master' ? '마스터' : '일반') + '</span>';
     w.classList.toggle('temp', !!u.tempPw);
     if(u.tempPw) w.title = '초기 비밀번호를 쓰고 있습니다. 눌러서 바꿔주세요.';
-    $('railFoot').innerHTML = '7단계 · 보고서 손질 4 &nbsp;/&nbsp; ' + esc(u.name || '');
+    $('railFoot').innerHTML = '7단계 · 보고서 쪽 번호 &nbsp;/&nbsp; ' + esc(u.name || '');
   }
 
   /* 설정 맨 아래 — 웹앱 주소와 서버 버전 (배포 확인용) */
@@ -2707,7 +2714,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       +     '<div class="formrow" style="display:block"><label>3사업장 및 교육 분위기</label>'
       +       '<textarea class="inp" id="repMood" rows="4">' + esc(REP.mood) + '</textarea></div>'
       +     '<div class="formrow" style="display:block"><label>4. 기타 특이사항</label>'
-      +       '<textarea class="inp" id="repNote" rows="3">' + esc(REP.note) + '</textarea></div>'
+      +       '<textarea class="inp" id="repNote" rows="4">' + esc(REP.note) + '</textarea></div>'
       +     '<div class="formrow" style="display:block"><label>5. 교육 사진</label>'
       +       '<div class="row" style="gap:8px">'
       +         '<div style="flex:1"><div class="thumb" id="ph1"><span>사진 1 고르기</span></div></div>'
@@ -2722,8 +2729,6 @@ tr.clickable:hover td{background:var(--surface-2)}
       +   '<div class="panel-bd">'
       +     (REP.mails.length
         ? '<p class="hint" style="margin:0"><b>설정 › 관리자(메일) 관리</b>에 등록된 곳으로 보냅니다.</p>'
-          + '<div class="formrow" style="display:block; margin-top:10px"><label>덧붙일 말 (선택)</label>'
-          + '<input class="inp" id="repMemo" placeholder="메일 본문 끝에 한 줄 들어갑니다"></div>'
         : '<div class="msg info">받는 곳이 없습니다. <b>설정 › 관리자(메일) 관리</b>에서 먼저 등록해 주세요.</div>')
       +     '<div class="row" style="margin-top:14px; gap:8px">'
       +       '<button class="btn primary" id="repSave">저장</button>'
@@ -2743,6 +2748,8 @@ tr.clickable:hover td{background:var(--surface-2)}
 
     repPaper();
     paintPhoto(1); paintPhoto(2);
+    /* 글꼴이 늦게 들어오면 줄 높이가 조금 바뀐다 — 다 들어온 뒤 쪽 나누기를 다시 */
+    try{ if(document.fonts && document.fonts.ready) document.fonts.ready.then(function(){ if($('a4') && REP.d) repPaper(); }); }catch(e){}
 
     $('repBodyIn').addEventListener('input', function(){ REP.body = this.value; repPaper(); });
     if($('repBodyReset')) $('repBodyReset').addEventListener('click', function(){
@@ -2771,6 +2778,7 @@ tr.clickable:hover td{background:var(--surface-2)}
     $('repSave').addEventListener('click', repSaveSend);
     $('repPrint').addEventListener('click', repPrint);
     $('repDown').addEventListener('click', function(){
+      repPaper();   /* 쪽 나누기를 지금 화면 그대로 다시 맞춘 뒤 */
       downloadPdf($('a4'), '교육결과보고서_' + s.site + '_' + s.date, $('repDown'));
     });
   }
@@ -2885,7 +2893,6 @@ tr.clickable:hover td{background:var(--surface-2)}
       + '<tr><td class="sec" colspan="6">4. 기타 특이사항</td></tr>'
       + '<tr><td class="box2" colspan="6"><span class="grow" style="min-height:22mm">' + esc(REP.note) + '</span></td></tr>'
 
-      + '<tr class="pgap"><td colspan="6" id="phGap"></td></tr>'
       + '<tr id="phSec"><td class="sec" colspan="6">5. 교육 사진</td></tr>'
       + '<tr>'
       +   '<td class="ph" colspan="3">' + (REP.ph[0] ? '<img src="' + REP.ph[0] + '" alt="">' : '<em>사진 1</em>') + '</td>'
@@ -2895,38 +2902,153 @@ tr.clickable:hover td{background:var(--surface-2)}
       + '</tbody></table>'
       + '<div class="foot">작성일 : ' + esc(today_()) + '</div>';
 
-    fitPhotoPage();
+    paginateA4($('a4'));
   }
 
   /**
-   * 사진 묶음이 쪽 경계에 걸치면 다음 장 첫머리로 밀어 준다.
-   * PDF 는 A4 를 297mm 씩 잘라 붙이므로, 잘리는 자리에 사진이 놓이면 반씩 나뉜다.
-   * 앞에 빈 줄(#phGap)을 넣어 남은 높이만큼 밀어 준다.
+   * 쪽 나누기 · 쪽 번호
+   * PDF 는 A4 를 297mm 씩 잘라 붙인다. 자르는 자리에 줄이 걸치지 않게 미리 밀어 두고,
+   * 두 장 이상이 되면 각 장 아래에 「1 / 2」 처럼 쪽 번호를 단다.
+   *  · 각 장 아래 10mm 는 쪽 번호 자리, 둘째 장부터는 위에도 10mm 여백
+   *  · 줄(tr)이 걸치면 통째로 다음 장으로. 구역 제목(.sec)은 바로 아랫줄과 함께,
+   *    「5. 교육 사진」은 사진·작성일까지 한 덩어리로 (예전 fitPhotoPage 가 하던 일)
+   *  · 기타 의견처럼 한 칸이 길면 칸 안의 줄(.qt/.ln) 사이에서 두 줄(tr)로 나눈다 — 통째로 밀면 앞 장이 많이 빈다
+   *  · 세로로 합친 칸(항목별 점수)은 한 덩어리로 옮긴다
+   *  · 한 장이면 아무것도 달지 않는다
    */
-  function fitPhotoPage(){
-    var a4 = $('a4');
+  function paginateA4(a4){
     if(!a4) return;
-    var gap = a4.querySelector('#phGap');
-    var sec = a4.querySelector('#phSec');
+    Array.prototype.forEach.call(a4.querySelectorAll('.pgno, .pgcut, .pgbrk'), function(x){ x.parentNode.removeChild(x); });
+    a4.style.minHeight = '';
+
+    /* offsetWidth 는 정수로 반올림된다(793.7 → 794) — 장마다 0.4px 씩 어긋나므로 실제 폭을 쓴다 */
+    var W = parseFloat(getComputedStyle(a4).width) || a4.offsetWidth, r0 = a4.getBoundingClientRect();
+    if(!W || !r0.width) return;                 /* 화면에 안 보이면 잴 수 없다 */
+    var sc = r0.width / W;                      /* 축소 표시 중이어도 같은 좌표계로 */
+    var MM = W / 210, PH = 297 * MM, TOP = 10 * MM, BOT = 10 * MM;
+
+    function base(){ return a4.getBoundingClientRect().top; }
+    function yT(el){ return (el.getBoundingClientRect().top - base()) / sc; }
+    function yB(el){ return (el.getBoundingClientRect().bottom - base()) / sc; }
+    function pg(v){ return Math.floor((v + 0.5) / PH); }
+    function limit(p){ return (p + 1) * PH - BOT; }
+    function start(p){ return p * PH + (p ? TOP : 0); }
+
+    /* el 앞에 빈칸을 넣어 el 을 다음 장 위 여백 바로 아래로 옮긴다 (표 테두리 반올림 차이는 한 번 더 맞춘다) */
+    function push(el, spacer, sizeEl){
+      var goal = (pg(yT(el)) + 1) * PH + TOP;
+      el.parentNode.insertBefore(spacer, el);
+      sizeEl.style.height = Math.max(0, goal - yT(el)) + 'px';
+      var d = goal - yT(el);
+      if(Math.abs(d) > 0.2) sizeEl.style.height = Math.max(0, parseFloat(sizeEl.style.height) + d) + 'px';
+    }
+    function pushRow(row){
+      var tr = document.createElement('tr'), td = document.createElement('td');
+      tr.className = 'pgbrk'; td.colSpan = 6; tr.appendChild(td);
+      push(row, tr, td);
+    }
+    /* 문항 제목(.qt)은 첫 줄 내용과 함께 옮긴다 */
+    function lineEnd(el){
+      var n = el.nextElementSibling;
+      return (el.classList.contains('qt') && n && n.classList.contains('ln')) ? n : el;
+    }
+    /* node 안에서 el 부터 끝까지를 떼어 낸 복사본 — 겉 틀은 복사하고 내용은 옮긴다 */
+    function cutFrom(node, el){
+      if(node === el) return el;
+      var child = null;
+      for(var c = node.firstChild; c; c = c.nextSibling){ if(c === el || c.contains(el)){ child = c; break; } }
+      var after = [];
+      for(var x = child.nextSibling; x; x = x.nextSibling) after.push(x);
+      var box = node.cloneNode(false);
+      box.appendChild(cutFrom(child, el));
+      after.forEach(function(x){ box.appendChild(x); });
+      return box;
+    }
+    /* 긴 칸(기타 의견)을 el 앞에서 두 줄(tr)로 나눈다 — 앞 장은 표 선으로 닫히고 다음 장은 머리글부터 다시 */
+    function splitRow(row, el){
+      var nr = row.cloneNode(false);
+      Array.prototype.forEach.call(row.children, function(td){
+        if(td.contains(el)){
+          var part = cutFrom(td, el);
+          Array.prototype.forEach.call(part.querySelectorAll('.grow'), function(g){ g.style.minHeight = '0'; });
+          nr.appendChild(part);
+        } else {
+          var c = td.cloneNode(true);
+          nr.appendChild(c);
+        }
+      });
+      Array.prototype.forEach.call(row.querySelectorAll('.txb'), function(t){ if(!t.children.length) t.parentNode.removeChild(t); });
+      row.parentNode.insertBefore(nr, row.nextSibling);
+      return nr;
+    }
+    /* 세로로 합친 칸(rowspan)이 있으면 그 줄들을 한 덩어리로 본다 — 사이에 빈 줄을 넣으면 표가 깨진다 */
+    function groupLast(row){
+      var span = 1;
+      Array.prototype.forEach.call(row.children, function(td){ span = Math.max(span, td.rowSpan || 1); });
+      var last = row;
+      for(var k = 1; k < span && last.nextElementSibling; k++) last = last.nextElementSibling;
+      return last;
+    }
+
+    var tb = a4.querySelector('table > tbody');
+    if(!tb) return;
     var foot = a4.querySelector('.foot');
-    if(!gap || !sec || !foot) return;
+    var PADB = 6;          /* 칸 안 줄 아래로 붙는 안쪽 여백 + 선 */
+    var row = tb.firstElementChild, guard = 0;
 
-    gap.style.height = '0px';
+    while(row && guard++ < 400){
+      if(row.classList.contains('pgbrk')){ row = row.nextElementSibling; continue; }
+      var last = groupLast(row);
+      var end = last;
+      if(row.id === 'phSec' && foot) end = foot;
+      else if(row.querySelector('td.sec') && last.nextElementSibling) end = groupLast(last.nextElementSibling);
 
-    /* 화면이 줄어들어 있어도 비율은 같으므로 같은 좌표계로 잰다 */
-    var box = a4.getBoundingClientRect();
-    var pageH = box.width * 297 / 210;
-    if(!(pageH > 0)) return;
+      var t = yT(row), p = pg(t);
+      var atTop = t <= start(p) + 1;
+      if(yB(end) <= limit(p) + 0.5){ row = last.nextElementSibling; continue; }   /* 이 장에 들어간다 */
 
-    var start = sec.getBoundingClientRect().top - box.top;        /* 사진 묶음이 시작하는 자리 */
-    var need = foot.getBoundingClientRect().bottom - box.top - start;  /* 거기서 끝까지의 높이 */
-    var rest = pageH - (start % pageH);                            /* 이 장에 남은 높이 */
+      var lines = row === last ? row.querySelectorAll('.qt, .ln') : [];
+      if(lines.length){
+        var brk = null;
+        for(var q = 0; q < lines.length; q++){
+          if(yB(lineEnd(lines[q])) + PADB > limit(p) + 0.5){ brk = lines[q]; break; }
+        }
+        if(brk === lines[0]){
+          /* 첫 줄부터 안 들어가면 칸째로 다음 장에 — 옮긴 뒤 같은 칸을 다시 본다 */
+          if(!atTop){ pushRow(row); continue; }
+          row = row.nextElementSibling; continue;
+        }
+        if(brk){
+          var nr = splitRow(row, brk);
+          pushRow(nr);
+          row = nr; continue;               /* 나뉜 뒷부분도 다음 장에서 넘치면 또 나눈다 */
+        }
+      }
+      if(!atTop && (yB(end) - t) <= PH - TOP - BOT){ pushRow(row); continue; }
+      /* 한 장보다 긴 칸(글을 아주 많이 적은 경우)은 그대로 둔다 — 잘려서 이어진다 */
+      row = last.nextElementSibling;
+    }
 
-    if(rest >= pageH - 1) return;      /* 이미 장 첫머리 */
-    if(need <= rest + 1) return;       /* 이 장에 다 들어간다 */
+    var H = a4.getBoundingClientRect().height / sc;
+    var n = Math.max(1, Math.ceil((H - 1) / PH));
+    if(n < 2) return;
 
-    /* 1px 넉넉히 — 딱 맞추면 자를 때 한 줄이 앞 장에 걸린다 */
-    gap.style.height = (Math.ceil(rest) + 1) + 'px';
+    a4.style.minHeight = (n * 297) + 'mm';
+    for(var k = 0; k < n; k++){
+      var no = document.createElement('div');
+      no.className = 'pgno';
+      no.style.top = ((k + 1) * PH - BOT) + 'px';
+      no.textContent = (k + 1) + ' / ' + n;
+      a4.appendChild(no);
+      if(k){
+        /* 화면에서만 보이는 자르는 선 — PDF(html2canvas)·인쇄에는 안 나온다 */
+        var cut = document.createElement('div');
+        cut.className = 'pgcut';
+        cut.setAttribute('data-html2canvas-ignore', 'true');
+        cut.style.top = (k * PH) + 'px';
+        a4.appendChild(cut);
+      }
+    }
   }
 
   function today_(){
@@ -2990,7 +3112,7 @@ tr.clickable:hover td{background:var(--surface-2)}
   }
 
   /* ---------- 인쇄 ---------- */
-  function repPrint(){ printEl($('a4')); }
+  function repPrint(){ repPaper(); printEl($('a4')); }
 
   /* ---------- PDF 만들어 발송 ---------- */
   function loadLib(src){
@@ -3027,12 +3149,13 @@ tr.clickable:hover td{background:var(--surface-2)}
     repSave(false).then(function(r){
       if(!r || !r.ok){ btn.disabled = false; btn.textContent = old; return; }
       btn.textContent = 'PDF 만드는 중…';
+      repPaper();
       return pdfFrom($('a4')).then(function(pdf){
         btn.textContent = '보내는 중…';
         return apiPost({
           mode:'reportSend', id:REP.id, pdf:pdf,
           mails: mails.join(','),
-          memo: $('repMemo') ? $('repMemo').value : ''
+          memo: ''
         });
       }).then(function(x){
         btn.disabled = false; btn.textContent = old;
