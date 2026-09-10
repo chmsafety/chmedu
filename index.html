@@ -821,7 +821,7 @@ tr.clickable:hover td{background:var(--surface-2)}
             <div class="stat"><span class="k">평균 평점</span><span class="v" id="kScore">—</span><span class="d">5점 만점</span></div>
             <div class="stat"><span class="k">보완 필요</span><span class="v" id="kTemp">—</span><span class="d">QR로 먼저 만들어진 차수</span></div>
           </div>
-          <div class="panel-bd tight"><div class="tscroll"><table id="sesTable" style="min-width:998px"></table></div></div>
+          <div class="panel-bd tight"><div class="tscroll"><table id="sesTable" style="min-width:1118px"></table></div></div>
           <div class="panel-bd" style="padding-top:0">
             <p class="hint"><b>임시</b>는 담당자가 미리 등록하지 않은 상태에서 QR이 먼저 찍혀 자동으로 만들어진 차수입니다. 눌러서 시간·강사를 채워주시면 정식 차수가 됩니다.</p>
           </div>
@@ -872,7 +872,7 @@ tr.clickable:hover td{background:var(--surface-2)}
             <span class="spacer"></span>
             <button class="btn sm primary" id="courseAdd">과정 추가</button>
           </div>
-          <div class="panel-bd tight"><div class="tscroll"><table id="courseTable" style="min-width:1125px"></table></div></div>
+          <div class="panel-bd tight"><div class="tscroll"><table id="courseTable" style="min-width:1245px"></table></div></div>
           <div class="panel-bd" style="padding-top:0">
             <p class="hint">「교육 내용」이 결과보고서의 <b>1. 교육 내용</b>으로 그대로 들어갑니다. 한 번 잘 써두면 그 과정으로 여는 교육은 매번 자동으로 채워집니다. 설문지는 <b>등록관리 › 설문 등록</b>에서 만들어 두고 여기서 고릅니다.</p>
           </div>
@@ -1239,7 +1239,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       + esc(u.id || '') + ' · ' + (u.role === 'master' ? '마스터' : '일반') + '</span>';
     w.classList.toggle('temp', !!u.tempPw);
     if(u.tempPw) w.title = '초기 비밀번호를 쓰고 있습니다. 눌러서 바꿔주세요.';
-    $('railFoot').innerHTML = '7단계 · 차수 삭제 · QR 설문 &nbsp;/&nbsp; ' + esc(u.name || '');
+    $('railFoot').innerHTML = '7단계 · 등록자 · 삭제 권한 &nbsp;/&nbsp; ' + esc(u.name || '');
   }
 
   /* 설정 맨 아래 — 웹앱 주소와 서버 버전 (배포 확인용) */
@@ -1340,7 +1340,8 @@ tr.clickable:hover td{background:var(--surface-2)}
       '<thead><tr><th style="width:66px">코드</th><th style="width:190px">과정명</th><th style="width:150px">교육 구분</th>'
       + '<th class="num" style="width:71px">기본시간</th>'
       + '<th>교육 내용 <span style="font-weight:400; text-transform:none">— 결과보고서에 자동 입력</span></th>'
-      + '<th style="width:140px">설문지</th><th style="width:84px">자료</th><th style="width:84px">QR</th><th style="width:160px"></th></tr></thead><tbody>'
+      + '<th style="width:140px">설문지</th><th style="width:120px">등록자</th>'
+      + '<th style="width:84px">자료</th><th style="width:84px">QR</th><th style="width:160px"></th></tr></thead><tbody>'
       + (S.courses.length ? S.courses.map(function(c){
           var f = formById(c.fm);
           var nmat = (MAT.files || []).filter(function(x){ return x.course === c.code; }).length;
@@ -1353,11 +1354,13 @@ tr.clickable:hover td{background:var(--surface-2)}
             +   (f ? '<b>' + esc(f.nm) + '</b><br><span style="font-size:13px; color:var(--ink-3)">' + f.qs.length + '문항</span>'
                    : '<span class="chip warn">설문지 없음</span>')
             + '</td>'
+            + '<td style="font-size:13px">' + whoCell(c.by, c.at) + '</td>'
             + '<td><button class="btn sm" data-mat="' + esc(c.code) + '">' + (nmat ? nmat + '건' : '올리기') + '</button></td>'
             + '<td><button class="btn sm" data-qr="' + esc(c.code) + '">QR 보기</button></td>'
             + '<td class="acts"><button class="btn sm" data-edit="' + esc(c.code) + '">수정</button>'
-            + '<button class="btn sm danger" data-del="' + esc(c.code) + '">삭제</button></td></tr>';
-        }).join('') : '<tr><td colspan="9" class="emptyrow">등록된 과정이 없습니다.</td></tr>')
+            + (isMaster() ? '<button class="btn sm danger" data-del="' + esc(c.code) + '">삭제</button>' : '')
+            + '</td></tr>';
+        }).join('') : '<tr><td colspan="10" class="emptyrow">등록된 과정이 없습니다.</td></tr>')
       + '</tbody>';
 
     bind($('courseTable'), 'data-qr', openCourseQr);
@@ -1463,6 +1466,18 @@ tr.clickable:hover td{background:var(--surface-2)}
     return (n === '' || n === '0') ? '' : n;
   }
 
+  /* 등록자 — 「홍길동 · 09-10」. 이름이 없으면 빈 글자 */
+  function whoStamp(by, at){
+    by = String(by || '').trim();
+    if(!by) return '';
+    var m = String(at || '').match(/\d{4}-(\d{2})-(\d{2})/);
+    return by + (m ? ' · ' + m[1] + '-' + m[2] : '');
+  }
+  function whoCell(by, at){
+    var s = whoStamp(by, at);
+    return s ? esc(s) : '<span style="color:var(--ink-3)">—</span>';
+  }
+
   /* 유형은 척도 · 선택 · 주관식 세 가지. 모르는 값은 척도로 본다 */
   function qKind(k){
     k = String(k || '');
@@ -1491,9 +1506,15 @@ tr.clickable:hover td{background:var(--surface-2)}
     var list = qCur();
     var used = qUsedBy(id);
 
+    var f0 = formById(id);
+    var stamp = f0 ? whoStamp(f0.by, f0.at) : '';
     $('qState').textContent = list.length + '문항 · 쓰는 과정 ' + used.length + '개'
-      + (used.length ? ' (' + used.map(function(c){ return c.nm; }).join(', ') + ')' : '');
+      + (used.length ? ' (' + used.map(function(c){ return c.nm; }).join(', ') + ')' : '')
+      + (stamp ? ' · 등록 ' + stamp : '');
     $('qState').className = 'chip ' + (used.length ? 'plain' : 'warn');
+
+    /* 설문지 삭제는 마스터만 */
+    if($('qDel')) $('qDel').hidden = !isMaster();
 
     $('qTable').innerHTML =
       '<thead><tr><th class="num" style="width:59px">순서</th><th>문항</th>'
@@ -2277,7 +2298,7 @@ tr.clickable:hover td{background:var(--surface-2)}
     var t = $('sesTable');
     if(!t) return;
     var b = t.querySelector('tbody');
-    if(b) b.innerHTML = '<tr><td colspan="10" class="emptyrow">불러오는 중…</td></tr>';
+    if(b) b.innerHTML = '<tr><td colspan="11" class="emptyrow">불러오는 중…</td></tr>';
     else t.innerHTML = '<tbody><tr><td class="emptyrow">불러오는 중…</td></tr></tbody>';
   }
 
@@ -2309,7 +2330,8 @@ tr.clickable:hover td{background:var(--surface-2)}
       '<thead><tr><th style="width:113px">교육일자</th><th style="width:66px">회사</th><th style="width:153px">사업장</th>'
       + '<th>과정</th><th style="width:99px">강사</th><th style="width:113px">시간</th>'
       + '<th class="num" style="width:66px">참석</th><th class="num" style="width:66px">응답</th>'
-      + '<th class="num" style="width:66px">평점</th><th style="width:76px">상태</th></tr></thead><tbody>'
+      + '<th class="num" style="width:66px">평점</th><th style="width:76px">상태</th>'
+      + '<th style="width:120px">등록자</th></tr></thead><tbody>'
       + (SES.list.length ? SES.list.map(function(s){
           return '<tr class="clickable' + (s.state === '취소' ? ' off' : '') + '" data-open="' + esc(s.id) + '">'
             + '<td class="code">' + esc(s.date) + '</td>'
@@ -2321,8 +2343,9 @@ tr.clickable:hover td{background:var(--surface-2)}
             + '<td class="num">' + esc(s.attend || 0) + '</td>'
             + '<td class="num">' + esc(s.answers || 0) + '</td>'
             + '<td class="num">' + (s.score ? esc(s.score) : '—') + '</td>'
-            + '<td><span class="chip ' + (STCHIP[s.state] || 'plain') + '">' + esc(s.state) + '</span></td></tr>';
-        }).join('') : '<tr><td colspan="10" class="emptyrow">해당하는 교육이 없습니다.</td></tr>')
+            + '<td><span class="chip ' + (STCHIP[s.state] || 'plain') + '">' + esc(s.state) + '</span></td>'
+            + '<td style="font-size:13px">' + whoCell(s.by, s.at) + '</td></tr>';
+        }).join('') : '<tr><td colspan="11" class="emptyrow">해당하는 교육이 없습니다.</td></tr>')
       + '</tbody>';
 
     bind($('sesTable'), 'data-open', openDetail);
@@ -2454,7 +2477,8 @@ tr.clickable:hover td{background:var(--surface-2)}
       +   '<dt>강사</dt><dd>' + esc(s.teacher || '—') + '</dd>'
       +   (s.place ? '<dt>교육장소</dt><dd>' + esc(s.place) + '</dd>' : '')
       +   '<dt>참석</dt><dd><b>' + esc(s.attend || 0) + '명</b>' + (tgt(s.target) ? ' <span style="color:var(--ink-3)">/ 대상 ' + esc(tgt(s.target)) + '명</span>' : '') + '</dd>'
-      +   '<dt>등록</dt><dd>' + esc(s.via || '—') + '</dd>'
+      +   '<dt>등록</dt><dd>' + esc(s.via || '—')
+      +     (whoStamp(s.by, s.at) ? ' <span style="color:var(--ink-3)">· ' + esc(whoStamp(s.by, s.at)) + '</span>' : '') + '</dd>'
       + '</dl>'
       + '<h3 style="font-size:12px; color:var(--ink-3); margin:16px 0 6px">교육 내용 — 결과보고서에 그대로 들어갑니다</h3>'
       + '<div class="cbody" style="border:1px solid var(--line); border-radius:var(--r); padding:10px 12px">' + esc(s.body || '—') + '</div>'
