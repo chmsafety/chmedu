@@ -2625,9 +2625,9 @@ tr.clickable:hover td{background:var(--surface-2)}
       +   '<div class="panel-bd">'
       +     (sent ? '<div class="msg ok" style="margin-bottom:12px">' + esc(sent) + ' 에 발송했습니다.</div>' : '')
       +     '<div class="formrow" style="display:block"><label>3사업장 및 교육 분위기</label>'
-      +       '<textarea class="inp" id="repMood" rows="4" placeholder="예) 전원 집중해서 참여했고 질의응답이 활발했습니다.">' + esc(REP.mood) + '</textarea></div>'
+      +       '<textarea class="inp" id="repMood" rows="4">' + esc(REP.mood) + '</textarea></div>'
       +     '<div class="formrow" style="display:block"><label>4. 기타 특이사항</label>'
-      +       '<textarea class="inp" id="repNote" rows="3" placeholder="없으면 비워두세요">' + esc(REP.note) + '</textarea></div>'
+      +       '<textarea class="inp" id="repNote" rows="3">' + esc(REP.note) + '</textarea></div>'
       +     '<div class="formrow" style="display:block"><label>5. 교육 사진</label>'
       +       '<div class="row" style="gap:8px">'
       +         '<div style="flex:1"><div class="thumb" id="ph1"><span>사진 1 고르기</span></div></div>'
