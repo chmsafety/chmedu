@@ -714,8 +714,8 @@ tr.clickable:hover td{background:var(--surface-2)}
                   <span class="spacer"></span>
                   <button class="btn sm primary" id="adminAdd">수신자 추가</button>
                 </div>
-                <div class="tscroll"><table id="adminTable" style="min-width:693px"></table></div>
-                <p class="hint">교육이 끝나면 여기 등록된 주소로 결과보고서와 출석부 PDF가 갑니다. 수신 구분으로 둘 중 하나만 받게 할 수도 있습니다.</p>
+                <div class="tscroll"><table id="adminTable" style="min-width:789px"></table></div>
+                <p class="hint">교육이 끝나면 여기 등록된 주소로 결과보고서와 출석부 PDF가 갑니다. 수신 구분으로 둘 중 하나만 받게 할 수도 있고, <b>회사</b>를 CHM · CHMS 로 정하면 그 회사 교육만 받습니다(비워 두면 둘 다).</p>
               </div>
 
               <!-- 문자 수신자 -->
@@ -1242,7 +1242,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       + esc(u.id || '') + ' · ' + (u.role === 'master' ? '마스터' : '일반') + '</span>';
     w.classList.toggle('temp', !!u.tempPw);
     if(u.tempPw) w.title = '초기 비밀번호를 쓰고 있습니다. 눌러서 바꿔주세요.';
-    $('railFoot').innerHTML = '7단계 · 보고서 칸 늘어남 2 &nbsp;/&nbsp; ' + esc(u.name || '');
+    $('railFoot').innerHTML = '7단계 · 출석부 · 회사별 수신 &nbsp;/&nbsp; ' + esc(u.name || '');
   }
 
   /* 설정 맨 아래 — 웹앱 주소와 서버 버전 (배포 확인용) */
@@ -1469,6 +1469,19 @@ tr.clickable:hover td{background:var(--surface-2)}
     return (n === '' || n === '0') ? '' : n;
   }
 
+  /**
+   * 그 회사 교육을 받을 수신자만 고른다.
+   * 회사 칸이 비어 있으면 「전체」 — CHM·CHMS 어느 쪽이든 받는다.
+   */
+  function adminsFor(co){
+    co = String(co || '').trim();
+    return (S.admins || []).filter(function(a){
+      if(String(a.mail || '').indexOf('@') < 0) return false;
+      var c = String(a.co || '').trim();
+      return !c || !co || c === co;
+    });
+  }
+
   /* 등록자 — 「홍길동 · 09-10」. 이름이 없으면 빈 글자 */
   function whoStamp(by, at){
     by = String(by || '').trim();
@@ -1639,14 +1652,19 @@ tr.clickable:hover td{background:var(--surface-2)}
     $('adminCount').textContent = S.admins.length + '명';
     $('adminTable').innerHTML =
       '<thead><tr><th style="width:118px">이름</th><th style="width:130px">소속</th><th>메일주소</th>'
+      + '<th style="width:96px">회사</th>'
       + '<th style="width:123px">수신 구분</th><th style="width:142px"></th></tr></thead><tbody>'
       + (S.admins.length ? S.admins.map(function(a){
+          var co = String(a.co || '').trim();
           return '<tr><td><b>' + esc(a.nm) + '</b></td><td>' + esc(a.dept || '—') + '</td>'
             + '<td class="code">' + esc(a.mail) + '</td>'
+            + '<td>' + (co
+                ? '<span class="chip ' + (co === 'CHMS' ? 'chms' : 'chm') + '">' + esc(co) + '</span>'
+                : '<span class="chip plain">전체</span>') + '</td>'
             + '<td><span class="chip plain">' + esc(a.kind || '전체') + '</span></td>'
             + '<td class="acts"><button class="btn sm" data-edit="' + esc(a.mail) + '">수정</button>'
             + '<button class="btn sm danger" data-del="' + esc(a.mail) + '">삭제</button></td></tr>';
-        }).join('') : '<tr><td colspan="5" class="emptyrow">등록된 수신자가 없습니다. 여기에 등록해야 결과보고서가 메일로 나갑니다.</td></tr>')
+        }).join('') : '<tr><td colspan="6" class="emptyrow">등록된 수신자가 없습니다. 여기에 등록해야 결과보고서가 메일로 나갑니다.</td></tr>')
       + '</tbody>';
 
     bind($('adminTable'), 'data-edit', function(mail){
@@ -1670,6 +1688,11 @@ tr.clickable:hover td{background:var(--surface-2)}
       + '<div class="formrow"><label>소속</label><input class="inp" id="d_dept" value="' + esc(a.dept || '') + '"></div>'
       + '<div class="formrow"><label>메일주소 *</label><input class="inp" id="d_mail" value="' + esc(a.mail || '') + '" placeholder="name@example.com"'
       +   (a.mail ? ' readonly style="background:var(--surface-2)"' : '') + '></div>'
+      + '<div class="formrow"><label>회사</label><select class="inp" id="d_co">'
+      +   '<option value=""' + (String(a.co || '') ? '' : ' selected') + '>전체 (CHM · CHMS)</option>'
+      +   '<option' + (a.co === 'CHM' ? ' selected' : '') + '>CHM</option>'
+      +   '<option' + (a.co === 'CHMS' ? ' selected' : '') + '>CHMS</option>'
+      + '</select></div>'
       + '<div class="formrow"><label>수신 구분</label><select class="inp" id="d_kind">'
       + kinds.map(function(k){ return '<option' + (a.kind === k ? ' selected' : '') + '>' + k + '</option>'; }).join('')
       + '</select></div>'
@@ -1677,7 +1700,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       function(close){
         apiPost({
           mode:'adminSave', nm:$('d_nm').value, dept:$('d_dept').value,
-          mail:$('d_mail').value, kind:$('d_kind').value
+          mail:$('d_mail').value, kind:$('d_kind').value, co:$('d_co').value
         }).then(function(r){
           if(!r.ok) return toast(r.error, true);
           toast(r.message); close(); loadMasters();
@@ -2640,8 +2663,12 @@ tr.clickable:hover td{background:var(--surface-2)}
     var d = REP.d, s = d.session;
     var sent = d.report.sentAt;
 
-    /* 받는 곳은 화면에 보여주지 않는다 — 설정 › 관리자(메일) 관리에서만 다룬다 */
-    REP.mails = d.admins.map(function(a){ return a.mail; });
+    /* 받는 곳은 화면에 보여주지 않는다 — 설정 › 관리자(메일) 관리에서만 다룬다.
+       서버가 고른 목록에서 그 사업장의 회사에 맞는 사람만 남긴다 */
+    var okMail = {};
+    adminsFor(s.co).forEach(function(a){ okMail[a.mail] = 1; });
+    REP.mails = d.admins.map(function(a){ return a.mail; })
+      .filter(function(m){ return okMail[m]; });
 
     $('repBody').innerHTML =
       '<div class="replay">'
@@ -3002,7 +3029,7 @@ tr.clickable:hover td{background:var(--surface-2)}
 
   function drawAttend(){
     var d = ATT.d, s = d.session;
-    var admins = (S.admins || []).filter(function(a){ return (a.mail || '').indexOf('@') > 0; });
+    var admins = adminsFor(s.co);
 
     $('attBody').innerHTML =
       '<div class="replay">'
@@ -3022,11 +3049,53 @@ tr.clickable:hover td{background:var(--surface-2)}
       + '</div>';
 
     attPaper();
+    /* 예전 서명의 흰 바탕을 지우고 다시 그린다 */
+    cleanSigns(d.people).then(attPaper);
     $('attPrint').addEventListener('click', function(){ printEl($('a4att')); });
     $('attDown').addEventListener('click', function(){
       downloadPdf($('a4att'), '출석부_' + (d.session ? d.session.site + '_' + d.session.date : ATT.id), $('attDown'));
     });
     if($('attSend')) $('attSend').addEventListener('click', attSend);
+  }
+
+  /**
+   * 서명 그림의 흰 바탕을 지운다.
+   * 예전 서명은 흰 네모가 통째로 저장돼 있어 출석부에서 네모가 드러난다.
+   * 거의 흰 점은 지우고, 옅은 회색은 옅게 남겨 획이 끊기지 않게 한다.
+   */
+  function clearSignBg(src){
+    return new Promise(function(done){
+      if(!src || String(src).indexOf('data:image') !== 0) return done(src);
+      var img = new Image();
+      img.onload = function(){
+        try{
+          var w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+          if(!w || !h) return done(src);
+          var c = document.createElement('canvas');
+          c.width = w; c.height = h;
+          var x = c.getContext('2d');
+          x.drawImage(img, 0, 0);
+          var d = x.getImageData(0, 0, w, h), a = d.data;
+          for(var i = 0; i < a.length; i += 4){
+            var m = Math.min(a[i], a[i+1], a[i+2]);
+            if(m > 235) a[i+3] = 0;
+            else if(m > 200) a[i+3] = Math.round(a[i+3] * (235 - m) / 35);
+          }
+          x.putImageData(d, 0, 0);
+          done(c.toDataURL('image/png'));
+        }catch(e){ done(src); }
+      };
+      img.onerror = function(){ done(src); };
+      img.src = src;
+    });
+  }
+
+  /** 출석부에 실린 서명을 한 번씩만 손질한다 */
+  function cleanSigns(people){
+    return Promise.all((people || []).map(function(p){
+      if(!p || !p.sign || p._clean) return Promise.resolve();
+      return clearSignBg(p.sign).then(function(v){ p.sign = v; p._clean = true; });
+    }));
   }
 
   function attPaper(){
@@ -3042,7 +3111,7 @@ tr.clickable:hover td{background:var(--surface-2)}
     }
 
     $('a4att').innerHTML =
-      '<h1 class="ttl">교 육 참 석 부</h1>'
+      '<h1 class="ttl">교 육 출 석 부</h1>'
       + '<table class="kv2"><colgroup><col style="width:17%"><col style="width:33%"><col style="width:17%"><col style="width:33%"></colgroup><tbody>'
       + '<tr><td class="lb">교 육 명</td><td colspan="3"><b>' + esc(s.courseNm) + '</b>　<span style="font-size:9pt; color:#555">' + esc(s.kind || '') + '</span></td></tr>'
       + '<tr><td class="lb">사 업 장</td><td>' + esc(s.co) + ' / ' + esc(s.site) + '</td>'
@@ -3107,7 +3176,8 @@ tr.clickable:hover td{background:var(--surface-2)}
   }
 
   function drawMonthly(){
-    var admins = (S.admins || []).filter(function(a){ return (a.mail || '').indexOf('@') > 0; });
+    /* 회사를 골라 뽑았으면 그 회사 수신자만, 「전체 회사」면 모두 */
+    var admins = adminsFor((MON.d && MON.d.co) || $('mCo').value);
     $('monBody').innerHTML =
       '<div class="replay">'
       + '<div class="repform"><div class="panel">'
@@ -3615,7 +3685,9 @@ tr.clickable:hover td{background:var(--surface-2)}
     signCtx.scale(ratio, ratio);
     signCtx.lineWidth = 2.2; signCtx.lineCap = 'round'; signCtx.lineJoin = 'round';
     signCtx.strokeStyle = '#111';
-    signCtx.fillStyle = '#fff'; signCtx.fillRect(0, 0, w, h);
+    /* 바탕은 칠하지 않는다 — 흰 네모가 통째로 저장되면 출석부에서 지저분해진다.
+       칸이 하얗게 보이는 것은 .signpad 의 CSS 배경이 맡는다 */
+    signCtx.clearRect(0, 0, w, h);
     signUsed = false;
 
     function pos(e){
@@ -3636,8 +3708,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       c.addEventListener(ev, function(){ if(signOn && signUsed) stuErr('stuMsg2', ''); signOn = false; });
     });
     $('signClear').addEventListener('click', function(){
-      signCtx.fillStyle = '#fff';
-      signCtx.fillRect(0, 0, c.clientWidth, 180);
+      signCtx.clearRect(0, 0, c.clientWidth, 180);
       signUsed = false;
     });
   }
