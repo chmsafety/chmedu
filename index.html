@@ -415,6 +415,8 @@ tr.clickable:hover td{background:var(--surface-2)}
 .a4 .body{vertical-align:top}
 .a4 .rowh{height:6.2mm}
 .a4 .clip{display:block; overflow:hidden}
+/* 담당자가 적는 칸 — 적은 줄 수만큼 늘어난다 */
+.a4 .grow{display:block; overflow:visible}
 .a4 .ph{height:32mm; text-align:center; padding:2px}
 .a4 .ph img{max-width:100%; max-height:30mm; object-fit:contain}
 .a4 .ph em{color:#999; font-style:normal; font-size:9pt}
@@ -1239,7 +1241,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       + esc(u.id || '') + ' · ' + (u.role === 'master' ? '마스터' : '일반') + '</span>';
     w.classList.toggle('temp', !!u.tempPw);
     if(u.tempPw) w.title = '초기 비밀번호를 쓰고 있습니다. 눌러서 바꿔주세요.';
-    $('railFoot').innerHTML = '7단계 · 등록자 · 삭제 권한 &nbsp;/&nbsp; ' + esc(u.name || '');
+    $('railFoot').innerHTML = '7단계 · 보고서 칸 늘어남 &nbsp;/&nbsp; ' + esc(u.name || '');
   }
 
   /* 설정 맨 아래 — 웹앱 주소와 서버 버전 (배포 확인용) */
@@ -2790,7 +2792,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       +     '<td class="lb">차 수 ID</td><td class="ctr" style="font-size:8.5pt">' + esc(s.id) + '</td></tr>'
 
       + '<tr><td class="sec" colspan="6">1. 교육 내용</td></tr>'
-      + '<tr><td class="body" colspan="6"><span class="clip" style="height:22mm">' + esc(s.body || '') + '</span></td></tr>'
+      + '<tr><td class="body" colspan="6"><span class="grow" style="min-height:22mm">' + esc(s.body || '') + '</span></td></tr>'
 
       + '<tr><td class="sec" colspan="6">2. 교육 결과</td></tr>'
       + '<tr><td class="lb">설문 참여</td><td class="ctr" colspan="2">' + esc(sv.count) + '명</td>'
@@ -2799,10 +2801,10 @@ tr.clickable:hover td{background:var(--surface-2)}
       + txRows
 
       + '<tr><td class="sec" colspan="6">3사업장 및 교육 분위기</td></tr>'
-      + '<tr><td class="box" colspan="6"><span class="clip" style="height:17mm">' + esc(REP.mood) + '</span></td></tr>'
+      + '<tr><td class="box" colspan="6"><span class="grow" style="min-height:17mm">' + esc(REP.mood) + '</span></td></tr>'
 
       + '<tr><td class="sec" colspan="6">4. 기타 특이사항</td></tr>'
-      + '<tr><td class="box2" colspan="6"><span class="clip" style="height:12mm">' + esc(REP.note) + '</span></td></tr>'
+      + '<tr><td class="box2" colspan="6"><span class="grow" style="min-height:12mm">' + esc(REP.note) + '</span></td></tr>'
 
       + '<tr><td class="sec" colspan="6">5. 교육 사진</td></tr>'
       + '<tr>'
@@ -2892,7 +2894,30 @@ tr.clickable:hover td{background:var(--surface-2)}
     }).then(function(canvas){
       var img = canvas.toDataURL('image/jpeg', 0.92);
       var doc = new window.jspdf.jsPDF({ orientation:'p', unit:'mm', format:'a4' });
-      doc.addImage(img, 'JPEG', 0, 0, 210, 297, undefined, 'FAST');
+
+      /* 가로 210mm 에 맞추고 세로는 비율 그대로 */
+      var W = 210, H = 297;
+      var imgH = canvas.height * W / canvas.width;
+
+      if(imgH <= H + 0.5){
+        /* 한 장에 들어간다 */
+        doc.addImage(img, 'JPEG', 0, 0, W, imgH, undefined, 'FAST');
+      } else if(imgH <= H * 1.15){
+        /* 조금 넘칠 때는 살짝 줄여 한 장에 담는다 — 보고서는 A4 한 장이 기본 */
+        var w2 = W * H / imgH;
+        doc.addImage(img, 'JPEG', (W - w2) / 2, 0, w2, H, undefined, 'FAST');
+      } else {
+        /* 많이 길어지면 다음 장으로 이어 붙인다 (찌그러뜨리지 않는다) */
+        doc.addImage(img, 'JPEG', 0, 0, W, imgH, undefined, 'FAST');
+        var left = imgH - H, top = 0;
+        while(left > 0.5){
+          top -= H;
+          doc.addPage();
+          doc.addImage(img, 'JPEG', 0, top, W, imgH, undefined, 'FAST');
+          left -= H;
+        }
+      }
+
       var out = doc.output('datauristring');
       return 'data:application/pdf;base64,' + out.slice(out.indexOf('base64,') + 7);
     });
@@ -3120,7 +3145,7 @@ tr.clickable:hover td{background:var(--surface-2)}
 
       /* 「교육이 없는 사업장」 항목을 뺀 만큼 총평 칸을 넓혔다 */
       + '<tr><td class="sec" colspan="6">4. 총평</td></tr>'
-      + '<tr><td colspan="6" style="height:40mm; vertical-align:top"><span class="clip" style="height:39mm">' + esc(MON.sum) + '</span></td></tr>'
+      + '<tr><td colspan="6" style="vertical-align:top"><span class="grow" style="min-height:39mm">' + esc(MON.sum) + '</span></td></tr>'
       + '</tbody></table>'
       + '<div class="foot">보고자 : ' + esc(d.reporter || (S.user && S.user.name) || '') + '　／　작성일 : ' + esc(today_()) + '</div>';
   }
