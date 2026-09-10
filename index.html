@@ -577,7 +577,6 @@ tr.clickable:hover td{background:var(--surface-2)}
     <section class="stustep" id="stu3">
       <div class="stucard">
         <h2>교육 설문</h2>
-        <div class="sub">누가 어떤 점수를 줬는지는 저장하지 않습니다. 솔직하게 답해주세요.</div>
         <div id="stuQs"></div>
         <div class="msg err" id="stuMsg3" hidden></div>
         <button class="btn primary stubtn" id="stuGo3" style="margin-top:14px">설문 제출</button>
@@ -1240,7 +1239,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       + esc(u.id || '') + ' · ' + (u.role === 'master' ? '마스터' : '일반') + '</span>';
     w.classList.toggle('temp', !!u.tempPw);
     if(u.tempPw) w.title = '초기 비밀번호를 쓰고 있습니다. 눌러서 바꿔주세요.';
-    $('railFoot').innerHTML = '7단계 · 차수 삭제 · QR 설문 고침 &nbsp;/&nbsp; ' + esc(u.name || '');
+    $('railFoot').innerHTML = '7단계 · 차수 삭제 · QR 설문 &nbsp;/&nbsp; ' + esc(u.name || '');
   }
 
   /* 설정 맨 아래 — 웹앱 주소와 서버 버전 (배포 확인용) */
