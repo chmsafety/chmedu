@@ -404,6 +404,9 @@ tr.clickable:hover td{background:var(--surface-2)}
 .thumb .x{position:absolute; top:4px; right:4px; background:rgba(0,0,0,.55); color:#fff; border:0; border-radius:4px; font-size:12.5px; padding:2px 6px; cursor:pointer}
 
 /* A4 — 화면에 보이는 그대로 PDF 가 됩니다 */
+/* 앱 목록 표의 줄무늬(짝수 줄 배경 --zebra)가 A4 표에도 먹어, 어두운 화면 모드에서
+   PDF 의 짝수 줄이 남색으로 찍혔다 → 종이 안에서는 줄무늬를 끈다 (결과보고서·출석부·월간보고 공통) */
+.a4{--zebra:transparent}
 .a4{position:relative; width:210mm; min-height:297mm; box-sizing:border-box; padding:10mm 12mm;
     background:#fff; color:#000; border:1px solid var(--line);
     font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-serif; font-size:10.5pt}
@@ -1260,7 +1263,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       + esc(u.id || '') + ' · ' + (u.role === 'master' ? '마스터' : '일반') + '</span>';
     w.classList.toggle('temp', !!u.tempPw);
     if(u.tempPw) w.title = '초기 비밀번호를 쓰고 있습니다. 눌러서 바꿔주세요.';
-    $('railFoot').innerHTML = '7단계 · 보고서 쪽 번호 &nbsp;/&nbsp; ' + esc(u.name || '');
+    $('railFoot').innerHTML = '7단계 · 보고서 어두운 모드 &nbsp;/&nbsp; ' + esc(u.name || '');
   }
 
   /* 설정 맨 아래 — 웹앱 주소와 서버 버전 (배포 확인용) */
