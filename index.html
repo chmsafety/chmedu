@@ -400,10 +400,10 @@ tr.clickable:hover td{background:var(--surface-2)}
 .thumb .x{position:absolute; top:4px; right:4px; background:rgba(0,0,0,.55); color:#fff; border:0; border-radius:4px; font-size:12.5px; padding:2px 6px; cursor:pointer}
 
 /* A4 — 화면에 보이는 그대로 PDF 가 됩니다 */
-.a4{width:210mm; min-height:297mm; box-sizing:border-box; padding:11mm 12mm;
+.a4{width:210mm; min-height:297mm; box-sizing:border-box; padding:10mm 12mm;
     background:#fff; color:#000; border:1px solid var(--line);
     font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-serif; font-size:10.5pt}
-.a4 .ttl{text-align:center; font-size:17pt; font-weight:800; letter-spacing:6px; margin:0 0 7mm}
+.a4 .ttl{text-align:center; font-size:17pt; font-weight:800; letter-spacing:6px; margin:0 0 5mm}
 .a4 table{width:100%; border-collapse:collapse; table-layout:fixed}
 .a4 td{border:1px solid #000; padding:4px 6px; vertical-align:middle; line-height:1.55;
        font-size:10pt; word-break:break-word; white-space:pre-wrap}
@@ -417,8 +417,8 @@ tr.clickable:hover td{background:var(--surface-2)}
 .a4 .clip{display:block; overflow:hidden}
 /* 담당자가 적는 칸 — 적은 줄 수만큼 늘어난다 */
 .a4 .grow{display:block; overflow:visible}
-.a4 .ph{height:32mm; text-align:center; padding:2px}
-.a4 .ph img{max-width:100%; max-height:30mm; object-fit:contain}
+.a4 .ph{height:28mm; text-align:center; padding:2px}
+.a4 .ph img{max-width:100%; max-height:26mm; object-fit:contain}
 .a4 .ph em{color:#999; font-style:normal; font-size:9pt}
 .a4 .foot{margin-top:5mm; text-align:right; font-size:9.5pt; color:#333}
 .a4 .sg{height:8.6mm; text-align:center; padding:1px}
@@ -670,12 +670,12 @@ tr.clickable:hover td{background:var(--surface-2)}
         <div class="panel" id="dMonthPanel" hidden>
           <div class="panel-hd"><h2 id="dMonthT">—</h2><span class="spacer"></span>
             <button class="btn sm" id="dMonthX">닫기</button></div>
-          <div class="panel-bd tight"><div class="tscroll"><table id="dMonthTable" style="min-width:770px"></table></div></div>
+          <div class="panel-bd tight"><div class="tscroll"><table id="dMonthTable" style="min-width:800px"></table></div></div>
         </div>
 
         <div class="panel">
           <div class="panel-hd"><h2>최근 교육</h2><span class="sub">최근 8건</span></div>
-          <div class="panel-bd tight"><div class="tscroll"><table id="dRecent" style="min-width:831px"></table></div></div>
+          <div class="panel-bd tight"><div class="tscroll"><table id="dRecent" style="min-width:861px"></table></div></div>
         </div>
 
       </section>
@@ -823,7 +823,7 @@ tr.clickable:hover td{background:var(--surface-2)}
             <div class="stat"><span class="k">평균 평점</span><span class="v" id="kScore">—</span><span class="d">5점 만점</span></div>
             <div class="stat"><span class="k">보완 필요</span><span class="v" id="kTemp">—</span><span class="d">QR로 먼저 만들어진 차수</span></div>
           </div>
-          <div class="panel-bd tight"><div class="tscroll"><table id="sesTable" style="min-width:1118px"></table></div></div>
+          <div class="panel-bd tight"><div class="tscroll"><table id="sesTable" style="min-width:1148px"></table></div></div>
           <div class="panel-bd" style="padding-top:0">
             <p class="hint"><b>임시</b>는 담당자가 미리 등록하지 않은 상태에서 QR이 먼저 찍혀 자동으로 만들어진 차수입니다. 눌러서 시간·강사를 채워주시면 정식 차수가 됩니다.</p>
           </div>
@@ -1242,7 +1242,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       + esc(u.id || '') + ' · ' + (u.role === 'master' ? '마스터' : '일반') + '</span>';
     w.classList.toggle('temp', !!u.tempPw);
     if(u.tempPw) w.title = '초기 비밀번호를 쓰고 있습니다. 눌러서 바꿔주세요.';
-    $('railFoot').innerHTML = '7단계 · 출석부 · 회사별 수신 &nbsp;/&nbsp; ' + esc(u.name || '');
+    $('railFoot').innerHTML = '7단계 · 보고서 4줄 · 평점 표기 &nbsp;/&nbsp; ' + esc(u.name || '');
   }
 
   /* 설정 맨 아래 — 웹앱 주소와 서버 버전 (배포 확인용) */
@@ -1480,6 +1480,12 @@ tr.clickable:hover td{background:var(--surface-2)}
       var c = String(a.co || '').trim();
       return !c || !co || c === co;
     });
+  }
+
+  /* 평점은 어디서나 「4.1 / 5.0」 */
+  function score5(v){
+    var n = Number(v);
+    return n > 0 ? n.toFixed(1) + ' / 5.0' : '—';
   }
 
   /* 등록자 — 「홍길동 · 09-10」. 이름이 없으면 빈 글자 */
@@ -2349,14 +2355,14 @@ tr.clickable:hover td{background:var(--surface-2)}
     $('kTotal').innerHTML = st.total + '<small>차수</small>';
     $('kCo').textContent = 'CHM ' + st.chm + ' · CHMS ' + st.chms;
     $('kPpl').innerHTML = st.people + '<small>명</small>';
-    $('kScore').innerHTML = (st.score ? st.score.toFixed(1) : '—') + '<small>점</small>';
+    $('kScore').innerHTML = (st.score ? st.score.toFixed(1) : '—') + '<small>/ 5.0</small>';
     $('kTemp').innerHTML = temp + '<small>건</small>';
 
     $('sesTable').innerHTML =
       '<thead><tr><th style="width:113px">교육일자</th><th style="width:66px">회사</th><th style="width:153px">사업장</th>'
       + '<th>과정</th><th style="width:99px">강사</th><th style="width:113px">시간</th>'
       + '<th class="num" style="width:66px">참석</th><th class="num" style="width:66px">응답</th>'
-      + '<th class="num" style="width:66px">평점</th><th style="width:76px">상태</th>'
+      + '<th class="num" style="width:96px">평점</th><th style="width:76px">상태</th>'
       + '<th style="width:120px">등록자</th></tr></thead><tbody>'
       + (SES.list.length ? SES.list.map(function(s){
           return '<tr class="clickable' + (s.state === '취소' ? ' off' : '') + '" data-open="' + esc(s.id) + '">'
@@ -2368,7 +2374,7 @@ tr.clickable:hover td{background:var(--surface-2)}
             + '<td style="font-size:12px">' + (s.start ? esc(s.start) + '~' + esc(s.end) : '<span style="color:var(--ink-3)">미입력</span>') + '</td>'
             + '<td class="num">' + esc(s.attend || 0) + '</td>'
             + '<td class="num">' + esc(s.answers || 0) + '</td>'
-            + '<td class="num">' + (s.score ? esc(s.score) : '—') + '</td>'
+            + '<td class="num" style="white-space:nowrap">' + score5(s.score) + '</td>'
             + '<td><span class="chip ' + (STCHIP[s.state] || 'plain') + '">' + esc(s.state) + '</span></td>'
             + '<td style="font-size:13px">' + whoCell(s.by, s.at) + '</td></tr>';
         }).join('') : '<tr><td colspan="11" class="emptyrow">해당하는 교육이 없습니다.</td></tr>')
@@ -2518,7 +2524,8 @@ tr.clickable:hover td{background:var(--surface-2)}
     var bars = sv.items.filter(function(q){ return qKind(q.k) === '척도'; }).map(function(q){
       return '<div class="qb"><span class="qn">' + esc(q.t) + '</span>'
         + '<span class="qr2"><span class="track"><span class="fill" style="width:' + (q.avg / 5 * 100).toFixed(1) + '%"></span></span>'
-        + '<b>' + (q.avg ? q.avg.toFixed(1) : '—') + '</b></span></div>';
+        + '<b>' + (q.avg ? q.avg.toFixed(1) : '—') + '</b>'
+        + '<span style="font-size:13px; color:var(--ink-3)">/ 5.0</span></span></div>';
     }).join('');
 
     var picks = pickStats(sv.items).map(function(p){
@@ -2536,7 +2543,7 @@ tr.clickable:hover td{background:var(--surface-2)}
 
     var survey =
       '<div class="panel"><div class="panel-hd"><h2>설문 결과</h2>'
-      + '<span class="sub">' + sv.count + '명 응답 · 평균 ' + (sv.avg ? sv.avg.toFixed(1) : '—') + '점</span></div>'
+      + '<span class="sub">' + sv.count + '명 응답 · 평균 ' + score5(sv.avg) + '</span></div>'
       + '<div class="panel-bd">'
       + (sv.count
           ? bars
@@ -2801,8 +2808,8 @@ tr.clickable:hover td{background:var(--surface-2)}
     /* 기타 의견 — 줄로 나누지 않고 한 칸에 모아 적는다. 많으면 칸이 늘어난다 */
     var shown = texts.map(function(t){ return esc(t); });
     var txRows = '<tr><td class="lb">기타<br>의견</td>'
-      + '<td colspan="5" style="font-size:9.5pt; vertical-align:top">'
-      +   '<span class="grow" style="min-height:27mm; line-height:1.45">'
+      + '<td class="tx" colspan="5" style="font-size:9.5pt; vertical-align:top">'
+      +   '<span class="grow" style="min-height:22mm; line-height:1.45">'
       +   (shown.length ? shown.join('<br>') : '')
       + '</span></td></tr>';
 
@@ -2824,7 +2831,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       +     '<td class="lb">차 수 ID</td><td class="ctr" style="font-size:8.5pt">' + esc(s.id) + '</td></tr>'
 
       + '<tr><td class="sec" colspan="6">1. 교육 내용</td></tr>'
-      + '<tr><td class="body" colspan="6"><span class="grow" style="min-height:22mm">' + esc(s.body || '') + '</span></td></tr>'
+      + '<tr><td class="body" colspan="6"><span class="grow" style="min-height:18mm">' + esc(s.body || '') + '</span></td></tr>'
 
       + '<tr><td class="sec" colspan="6">2. 교육 결과</td></tr>'
       + '<tr><td class="lb">설문 참여</td><td class="ctr" colspan="2">' + esc(sv.count) + '명</td>'
@@ -2833,10 +2840,10 @@ tr.clickable:hover td{background:var(--surface-2)}
       + txRows
 
       + '<tr><td class="sec" colspan="6">3사업장 및 교육 분위기</td></tr>'
-      + '<tr><td class="box" colspan="6"><span class="grow" style="min-height:17mm">' + esc(REP.mood) + '</span></td></tr>'
+      + '<tr><td class="box" colspan="6"><span class="grow" style="min-height:22mm">' + esc(REP.mood) + '</span></td></tr>'
 
       + '<tr><td class="sec" colspan="6">4. 기타 특이사항</td></tr>'
-      + '<tr><td class="box2" colspan="6"><span class="grow" style="min-height:12mm">' + esc(REP.note) + '</span></td></tr>'
+      + '<tr><td class="box2" colspan="6"><span class="grow" style="min-height:22mm">' + esc(REP.note) + '</span></td></tr>'
 
       + '<tr><td class="sec" colspan="6">5. 교육 사진</td></tr>'
       + '<tr>'
@@ -3380,7 +3387,7 @@ tr.clickable:hover td{background:var(--surface-2)}
     $('dTotal').innerHTML = st.total + '<small>차수</small>';
     $('dCo').textContent = 'CHM ' + st.chm + ' · CHMS ' + st.chms;
     $('dPpl').innerHTML = st.people + '<small>명</small>';
-    $('dScore').innerHTML = (st.avg ? st.avg.toFixed(1) : '—') + '<small>점</small>';
+    $('dScore').innerHTML = (st.avg ? st.avg.toFixed(1) : '—') + '<small>/ 5.0</small>';
     $('dAns').textContent = '설문 ' + st.answers + '명 응답';
 
     $('dSite').innerHTML = (st.sitesDone || 0) + '<small>곳</small>';
@@ -3404,7 +3411,7 @@ tr.clickable:hover td{background:var(--surface-2)}
   function sesTableHtml(list, empty){
     return '<thead><tr><th style="width:113px">교육일자</th><th style="width:66px">회사</th>'
       + '<th style="width:165px">사업장</th><th>과정</th><th style="width:99px">강사</th>'
-      + '<th class="num" style="width:66px">참석</th><th class="num" style="width:66px">평점</th>'
+      + '<th class="num" style="width:66px">참석</th><th class="num" style="width:96px; white-space:nowrap">평점</th>'
       + '<th style="width:76px">상태</th></tr></thead><tbody>'
       + (list.length ? list.map(function(s){
           return '<tr class="clickable" data-open="' + esc(s.id) + '">'
@@ -3414,7 +3421,7 @@ tr.clickable:hover td{background:var(--surface-2)}
             + '<td><b>' + esc(s.courseNm) + '</b><br><span style="font-size:11.5px; color:var(--ink-3)">' + esc(s.kind || '') + '</span></td>'
             + '<td>' + esc(s.teacher || '—') + '</td>'
             + '<td class="num">' + esc(s.attend || 0) + '</td>'
-            + '<td class="num">' + (s.score ? esc(s.score) : '—') + '</td>'
+            + '<td class="num" style="white-space:nowrap">' + score5(s.score) + '</td>'
             + '<td><span class="chip ' + (STCHIP[s.state] || 'plain') + '">' + esc(s.state) + '</span></td></tr>';
         }).join('') : '<tr><td colspan="8" class="emptyrow">' + esc(empty) + '</td></tr>')
       + '</tbody>';
