@@ -97,6 +97,9 @@ code{font-family:var(--font-m); font-size:.92em}
 .btn.primary{background:var(--accent); border-color:var(--accent); color:#fff; font-weight:700}
 .btn.primary:hover{filter:brightness(1.08); color:#fff}
 .btn.danger:hover{border-color:var(--crit); color:var(--crit)}
+/* 되돌릴 수 없는 삭제 — 「차수 취소」와 헷갈리지 않게 채워서 보여준다 */
+.btn.danger.hard{background:var(--crit-soft); border-color:var(--crit); color:var(--crit); font-weight:800}
+.btn.danger.hard:hover{background:var(--crit); color:#fff}
 .btn.sm{padding:6px 11px; font-size:14px}
 .btn[disabled]{opacity:.45; cursor:not-allowed}
 .inp{
@@ -1237,7 +1240,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       + esc(u.id || '') + ' · ' + (u.role === 'master' ? '마스터' : '일반') + '</span>';
     w.classList.toggle('temp', !!u.tempPw);
     if(u.tempPw) w.title = '초기 비밀번호를 쓰고 있습니다. 눌러서 바꿔주세요.';
-    $('railFoot').innerHTML = '7단계 · 보고서 손질 2 &nbsp;/&nbsp; ' + esc(u.name || '');
+    $('railFoot').innerHTML = '7단계 · 차수 삭제 &nbsp;/&nbsp; ' + esc(u.name || '');
   }
 
   /* 설정 맨 아래 — 웹앱 주소와 서버 버전 (배포 확인용) */
@@ -2438,6 +2441,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       + (s.state === '취소' || s.state === '임시' ? '' : '<button class="btn sm" id="detRep">결과보고서</button>')
       + (s.state === '취소' ? '' : '<button class="btn sm" id="detAtt">출석부</button>')
       + (s.state === '취소' ? '' : '<button class="btn sm danger" id="detDel">차수 취소</button>')
+      + (isMaster() ? '<button class="btn sm danger hard" id="detPurge">차수 삭제</button>' : '')
       + '</div>'
       + (s.state === '임시'
           ? '<div class="panel-bd" style="padding-bottom:0"><div class="msg info">QR이 먼저 찍혀 자동으로 만들어진 차수입니다. <b>수정</b>을 눌러 시간·강사를 채워주세요.</div></div>'
@@ -2518,6 +2522,27 @@ tr.clickable:hover td{background:var(--surface-2)}
           apiPost({ mode:'sessionDelete', id:s.id }).then(function(x){
             if(!x.ok) return toast(x.error, true);
             toast(x.message); loadSessions(); go('session');
+          });
+        });
+    });
+    /* 차수 완전 삭제 — 마스터만 보인다. 취소는 상태만 바꾸지만 이쪽은 줄을 아예 지운다 */
+    if($('detPurge')) $('detPurge').addEventListener('click', function(){
+      var n1 = (r.people || []).length, n2 = sv.count || 0;
+      confirmDlg('차수 삭제',
+        '<b>' + esc(s.date) + ' · ' + esc(s.site) + ' · ' + esc(s.courseNm) + '</b> 차수를 지웁니다.'
+        + '<br><span class="code" style="color:var(--ink-3)">' + esc(s.id) + '</span>'
+        + '<div class="msg err" style="margin-top:10px">함께 지워지는 것 — 참석자 <b>' + n1 + '명</b> · 설문 응답 <b>' + n2 + '명분</b>'
+        + '<br><b>지운 뒤에는 되돌릴 수 없습니다.</b></div>'
+        + (s.state === '취소' ? ''
+            : '<div style="color:var(--ink-3)">기록을 남겨 두려면 <b>차수 취소</b>를 쓰세요 — 상태만 「취소」로 바뀝니다.</div>')
+        + '<div style="color:var(--ink-3)">서명 그림 파일과 발송 이력은 그대로 남습니다.</div>',
+        function(){
+          apiPost({ mode:'sessionPurge', id:s.id }).then(function(x){
+            if(!x.ok) return toast(x.error, true);
+            toast(x.message);
+            SES.loaded = false;
+            go('session');
+            loadSessions();
           });
         });
     });
