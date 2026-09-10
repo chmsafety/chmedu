@@ -1240,7 +1240,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       + esc(u.id || '') + ' · ' + (u.role === 'master' ? '마스터' : '일반') + '</span>';
     w.classList.toggle('temp', !!u.tempPw);
     if(u.tempPw) w.title = '초기 비밀번호를 쓰고 있습니다. 눌러서 바꿔주세요.';
-    $('railFoot').innerHTML = '7단계 · 차수 삭제 &nbsp;/&nbsp; ' + esc(u.name || '');
+    $('railFoot').innerHTML = '7단계 · 차수 삭제 · QR 설문 고침 &nbsp;/&nbsp; ' + esc(u.name || '');
   }
 
   /* 설정 맨 아래 — 웹앱 주소와 서버 버전 (배포 확인용) */
@@ -3588,7 +3588,9 @@ tr.clickable:hover td{background:var(--surface-2)}
       }
 
       STU.sessionId = r.sessionId;
-      STU.questions = r.questions || STU.questions;
+      /* 문항은 QR 로 들어올 때 surveyForm 으로 받은 것(= 그 과정이 고른 설문지)을 그대로 쓴다.
+         출석 응답에 실려 오는 questions 는 옛 「과정코드」 방식이라 설문지가 섞이고
+         보기(선택 문항)가 빠져 있어 쓰지 않는다. */
       drawStuQs();
       stuStep('stu3');
     });
