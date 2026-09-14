@@ -102,6 +102,10 @@ code{font-family:var(--font-m); font-size:.92em}
 .btn.danger.hard:hover{background:var(--crit); color:#fff}
 .btn.sm{padding:6px 11px; font-size:14px}
 .btn[disabled]{opacity:.45; cursor:not-allowed}
+/* 누를 수 없는 버튼에도 까닭 풍선이 뜨게 — disabled 버튼은 마우스 이벤트를 받지 않는다 */
+.nocancel{display:inline-flex; cursor:not-allowed}
+.nocancel .btn[disabled]{pointer-events:none}
+.sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
 .inp{
   border:1px solid var(--line-2); background:var(--surface); color:var(--ink);
   border-radius:var(--r); padding:9px 11px; font-family:inherit; font-size:15.5px; width:100%;
@@ -721,7 +725,7 @@ tr.clickable:hover td{background:var(--surface-2)}
             <div class="stat"><span class="k">이수 사업장</span><span class="v" id="dSite">—</span><span class="d" id="dSiteD">—</span></div>
           </div>
           <div class="panel-bd" style="padding-top:4px">
-            <h3 class="mini-h">월별 운영 현황 <span>막대를 누르면 그 달 교육이 아래에 나옵니다</span></h3>
+            <h3 class="mini-h">월별 운영 현황 <span>교육이 끝난 차수만 셉니다 · 막대를 누르면 그 달 교육이 아래에 나옵니다</span></h3>
             <div class="mbars" id="dBars"></div>
           </div>
         </div>
@@ -1301,7 +1305,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       + esc(u.id || '') + ' · ' + (u.role === 'master' ? '마스터' : '일반') + '</span>';
     w.classList.toggle('temp', !!u.tempPw);
     if(u.tempPw) w.title = '초기 비밀번호를 쓰고 있습니다. 눌러서 바꿔주세요.';
-    $('railFoot').innerHTML = '7단계 · 출석부 함께 · 진행 3단계 &nbsp;/&nbsp; ' + esc(u.name || '');
+    $('railFoot').innerHTML = '7단계 · 끝난 교육만 집계 &nbsp;/&nbsp; ' + esc(u.name || '');
   }
 
   /* 설정 맨 아래 — 웹앱 주소와 서버 버전 (배포 확인용) */
@@ -2432,6 +2436,18 @@ tr.clickable:hover td{background:var(--surface-2)}
     return 0;
   }
 
+  /**
+   * 차수 취소를 할 수 있는가 — 교육이 끝났거나(교육종료) 보고까지 마쳤으면(보고완료) 막는다.
+   * 「예정」과, QR 로 저절로 생긴 「임시」(잘못 찍힌 것 정리용)만 취소할 수 있다.
+   * 서버(apiSessionDeleteV3_)도 같은 규칙으로 한 번 더 막는다.
+   */
+  function canCancel(s){
+    if(!s || s.state === '취소') return false;
+    if(s.state === '임시') return true;
+    return stageOf(s) === 0;
+  }
+  var NO_CANCEL = '교육이 끝났거나 보고를 마친 차수는 취소할 수 없습니다.';
+
   /** 표 안에 넣는 작은 표시 — 막대 셋 + 지금 단계 */
   function stepMini(s){
     var k = stageOf(s);
@@ -2627,7 +2643,11 @@ tr.clickable:hover td{background:var(--surface-2)}
       + (s.state === '취소' ? '' : '<button class="btn sm" id="detEdit">수정</button>')
       + (s.state === '취소' || s.state === '임시' ? '' : '<button class="btn sm" id="detRep">결과보고서</button>')
       + (s.state === '취소' ? '' : '<button class="btn sm" id="detAtt">출석부</button>')
-      + (s.state === '취소' ? '' : '<button class="btn sm danger" id="detDel">차수 취소</button>')
+      + (s.state === '취소' ? ''
+          : canCancel(s) ? '<button class="btn sm danger" id="detDel">차수 취소</button>'
+          /* 끝난 차수 — 버튼은 남기되 누를 수 없게. 마우스를 올리면 까닭이 보인다 */
+          : '<span class="nocancel" title="' + NO_CANCEL + '"><button class="btn sm danger" id="detDelOff" disabled aria-describedby="detDelWhy">차수 취소</button></span>'
+            + '<span id="detDelWhy" class="sr">' + NO_CANCEL + '</span>')
       + (isMaster() ? '<button class="btn sm danger hard" id="detPurge">차수 삭제</button>' : '')
       + '</div>'
       + (stageOf(s) >= 0 ? '<div class="panel-bd stpwrap" id="detStep">' + stepFull(s) + '</div>' : '')
@@ -2707,6 +2727,7 @@ tr.clickable:hover td{background:var(--surface-2)}
     if($('detAtt')) $('detAtt').addEventListener('click', function(){ openAttend(s.id); });
     if($('detAtt2')) $('detAtt2').addEventListener('click', function(){ openAttend(s.id); });
     if($('detDel')) $('detDel').addEventListener('click', function(){
+      if(!canCancel(s)) return toast(NO_CANCEL, true);
       confirmDlg('차수 취소', esc(s.date) + ' ' + esc(s.site) + ' 교육을 취소할까요?<br><span style="color:var(--ink-3)">기록은 지우지 않고 상태만 「취소」로 바꿉니다.</span>',
         function(){
           apiPost({ mode:'sessionDelete', id:s.id }).then(function(x){
@@ -2723,7 +2744,7 @@ tr.clickable:hover td{background:var(--surface-2)}
         + '<br><span class="code" style="color:var(--ink-3)">' + esc(s.id) + '</span>'
         + '<div class="msg err" style="margin-top:10px">함께 지워지는 것 — 참석자 <b>' + n1 + '명</b> · 설문 응답 <b>' + n2 + '명분</b>'
         + '<br><b>지운 뒤에는 되돌릴 수 없습니다.</b></div>'
-        + (s.state === '취소' ? ''
+        + (!canCancel(s) ? ''
             : '<div style="color:var(--ink-3)">기록을 남겨 두려면 <b>차수 취소</b>를 쓰세요 — 상태만 「취소」로 바뀝니다.</div>')
         + '<div style="color:var(--ink-3)">서명 그림 파일과 발송 이력은 그대로 남습니다.</div>',
         function(){
@@ -3318,7 +3339,9 @@ tr.clickable:hover td{background:var(--surface-2)}
       }).then(function(x){
         btn.disabled = false; btn.textContent = old;
         if(!x.ok) return toast(x.error, true);
-        toast(x.message + (attErr ? ' — 출석부는 빠졌습니다(' + attErr + ')' : ''), !!attErr);
+        /* 잘 나갔을 때는 따로 알리지 않는다 — 작성란 맨 위에 「…에 발송했습니다」 가 남는다.
+           빠진 것이 있을 때만 알린다 */
+        if(attErr) toast('결과보고서만 보냈습니다 — 출석부는 빠졌습니다(' + attErr + ')', true);
         markReportSent(REP.id);
         openReport(REP.id);
       });
@@ -3782,7 +3805,7 @@ tr.clickable:hover td{background:var(--surface-2)}
 
   function drawDash(){
     var d = DASH.d, st = d.stat;
-    $('dSub').textContent = d.y + '년';
+    $('dSub').textContent = d.y + '년 · 교육이 끝난 차수 기준';
     $('dTotal').innerHTML = st.total + '<small>차수</small>';
     $('dCo').textContent = 'CHM ' + st.chm + ' · CHMS ' + st.chms;
     $('dPpl').innerHTML = st.people + '<small>명</small>';
@@ -3856,7 +3879,7 @@ tr.clickable:hover td{background:var(--surface-2)}
     var q = $('cQ').value.trim();
     var list = d.sites.filter(function(x){ return !q || x.nm.indexOf(q) >= 0; });
 
-    $('cSum').textContent = '총 ' + st.total + '회 · 사업장 평균 ' + st.avg.toFixed(1) + '회 · 미실시 ' + st.zero + '곳';
+    $('cSum').textContent = '총 ' + st.total + '회 · 사업장 평균 ' + st.avg.toFixed(1) + '회 · 미실시 ' + st.zero + '곳 (교육이 끝난 것만)';
 
     $('doneBody').innerHTML = '<div class="panel"><div class="panel-bd">'
       + (list.length
