@@ -479,10 +479,14 @@ tr.clickable:hover td{background:var(--surface-2)}
 .a4 .pgno{position:absolute; left:0; right:0; height:10mm; display:flex; align-items:center; justify-content:center;
           font-size:9pt; color:#444; letter-spacing:1px; pointer-events:none}
 .a4 .pgcut{position:absolute; left:0; right:0; height:0; border-top:1px dashed #b9b9b9; pointer-events:none}
-.a4 .ph{height:28mm; text-align:center; padding:2px}
-.a4 .ph img{max-width:100%; max-height:26mm; object-fit:contain}
+/* 교육 사진 — 높이 58mm(예전 26mm 의 2배 넘게) — 내용이 짧으면 한 장에 들어가는 크기 */
+.a4 .ph{height:60mm; text-align:center; padding:2px}
+.a4 .ph img{display:block; margin:0 auto; max-width:100%; max-height:58mm; object-fit:contain}
 .a4 .ph em{color:#999; font-style:normal; font-size:9pt}
-.a4 .foot{margin-top:5mm; text-align:right; font-size:9.5pt; color:#333}
+.a4 .foot{margin-top:5mm; text-align:right; font-size:10pt; color:#333}
+/* 결과보고서 글자 — 제목만 조금 크게(15pt), 나머지는 모두 10pt 로 통일 */
+.a4 .ttl.rep{font-size:15pt}
+#a4 td, #a4 td *, #a4 .foot{font-size:10pt; line-height:1.55}
 .a4 .sg{height:8.6mm; text-align:center; padding:1px}
 .a4 .sg img{max-height:8.5mm; max-width:34mm}
 .a4 .note{margin-top:4mm; font-size:9.5pt; line-height:1.7}
@@ -3016,7 +3020,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       var q = scales[i];
       scRows += '<tr>'
         + (i === 0 ? '<td class="lb" rowspan="' + scN + '">항목별<br>점수</td>' : '')
-        + '<td colspan="4" class="rowh" style="font-size:9.5pt"><span class="grow" style="min-height:5.4mm">' + (q ? esc(q.t) : '') + '</span></td>'
+        + '<td colspan="4" class="rowh"><span class="grow" style="min-height:5.4mm">' + (q ? esc(q.t) : '') + '</span></td>'
         + '<td class="ctr">' + (q && q.avg ? '<b>' + q.avg.toFixed(1) + '</b> / 5.0' : '') + '</td>'
         + '</tr>';
     }
@@ -3028,26 +3032,26 @@ tr.clickable:hover td{background:var(--surface-2)}
     }).join('');
 
     var txRows = '<tr><td class="lb">기타<br>의견</td>'
-      + '<td class="tx" colspan="5" style="font-size:9.5pt; vertical-align:top">'
-      +   '<span class="grow" style="min-height:22mm; line-height:1.45">' + txBody + '</span>'
+      + '<td class="tx" colspan="5" style="vertical-align:top">'
+      +   '<span class="grow" style="min-height:22mm">' + txBody + '</span>'
       + '</td></tr>';
 
     var time = s.start ? (s.start + ' ~ ' + s.end + '  (' + s.hrs + '시간)') : '—';
 
     $('a4').innerHTML =
-      '<h1 class="ttl">교육결과보고서</h1>'
+      '<h1 class="ttl rep">교육결과보고서</h1>'
       + '<table><colgroup>'
       +   '<col style="width:17%"><col style="width:16%"><col style="width:17%">'
       +   '<col style="width:17%"><col style="width:16%"><col style="width:17%">'
       + '</colgroup><tbody>'
 
-      + '<tr><td class="lb">교 육 명</td><td colspan="5"><b>' + esc(s.courseNm) + '</b>　<span style="font-size:9pt; color:#555">' + esc(s.kind || '') + '</span></td></tr>'
+      + '<tr><td class="lb">교 육 명</td><td colspan="5"><b>' + esc(s.courseNm) + '</b>　<span style="color:#555">' + esc(s.kind || '') + '</span></td></tr>'
       + '<tr><td class="lb">교육일자</td><td>' + esc(s.date) + '</td>'
       +     '<td class="lb">교육시간</td><td colspan="3">' + esc(time) + '</td></tr>'
       + '<tr><td class="lb">대　　상</td><td colspan="2">' + esc(s.co) + ' / ' + esc(s.site) + '</td>'
       +     '<td class="lb">참석자 수</td><td class="ctr" colspan="2">' + esc(s.attend || 0) + '명' + (tgt(s.target) ? ' / ' + esc(tgt(s.target)) + '명' : '') + '</td></tr>'
       + '<tr><td class="lb">강　　사</td><td colspan="3">' + esc(s.teacher || '—') + '</td>'
-      +     '<td class="lb">차 수 ID</td><td class="ctr" style="font-size:8.5pt">' + esc(s.id) + '</td></tr>'
+      +     '<td class="lb">차 수 ID</td><td class="ctr">' + esc(s.id) + '</td></tr>'
 
       + '<tr><td class="sec" colspan="6">1. 교육 내용</td></tr>'
       + '<tr><td class="body" colspan="6"><span class="grow" style="min-height:18mm">' + esc(REP.body || '') + '</span></td></tr>'
@@ -3058,7 +3062,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       + scRows
       + txRows
 
-      + '<tr><td class="sec" colspan="6">3사업장 및 교육 분위기</td></tr>'
+      + '<tr><td class="sec" colspan="6">3. 사업장 및 교육 분위기</td></tr>'
       + '<tr><td class="box" colspan="6"><span class="grow" style="min-height:22mm">' + esc(REP.mood) + '</span></td></tr>'
 
       + '<tr><td class="sec" colspan="6">4. 기타 특이사항</td></tr>'
