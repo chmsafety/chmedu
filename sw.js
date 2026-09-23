@@ -1,6 +1,6 @@
 /* CHMEdu — 앱 설치·빠른 실행용 서비스 워커
    서버(Apps Script) 호출은 절대 캐시하지 않는다. 화면 껍데기만 캐시한다. */
-const V = 'chmedu-2026-09-07';
+const V = 'chmedu-2026-09-23';
 const SHELL = ['./', './index.html', './manifest.json',
   './chmedu-192.png', './chmedu-512.png',
   './chmedu-maskable-192.png', './chmedu-maskable-512.png',
@@ -43,6 +43,9 @@ self.addEventListener('fetch', e => {
   if (url.origin !== location.origin) return;
 
   // 화면 이동: 네트워크 우선, 안 되면 캐시본
+  // 결과보고서 열람 링크(report.html)는 로그인 없이 여는 별도 페이지 — 손대지 않는다
+  if (/\/report\.html$/.test(url.pathname)) return;
+
   if (req.mode === 'navigate') {
     e.respondWith((async () => {
       try {

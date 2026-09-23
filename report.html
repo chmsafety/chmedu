@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>교육 결과보고서</title>
+<meta name="theme-color" content="#8B3FEA">
+<meta name="robots" content="noindex">
+<link rel="icon" href="chmedu-favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="chmedu-apple-180.png">
+<style>
+:root{--bg:#f3f1f7;--card:#fff;--ink:#1c1726;--ink2:#5d5670;--line:#e4dff0;--ac:#8B3FEA;--ac2:#6425C0}
+@media (prefers-color-scheme:dark){:root{--bg:#15121c;--card:#1f1a29;--ink:#eee9f7;--ink2:#a79fb8;--line:#332b42}}
+*{box-sizing:border-box}
+html{font-size:16px}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Noto Sans KR',-apple-system,'Malgun Gothic',Arial,sans-serif;overflow-x:hidden}
+.hd{background:linear-gradient(135deg,#B06BFF,#8B3FEA 55%,#6425C0);color:#fff;padding:14px 16px}
+.hd .in{max-width:900px;margin:0 auto;display:flex;align-items:center;gap:12px}
+.hd .t{font-size:1.02rem;font-weight:800}
+.hd .s{font-size:.8rem;opacity:.9;margin-top:3px;line-height:1.4}
+.hd .sp{flex:1}
+.btn{border:none;border-radius:8px;padding:8px 13px;font:inherit;font-size:.82rem;font-weight:700;cursor:pointer;white-space:nowrap}
+.hd .btn{background:rgba(255,255,255,.18);color:#fff}
+.wrap{max-width:900px;margin:0 auto;padding:14px 12px 8px}
+.msg{background:var(--card);border:1px solid var(--line);border-radius:12px;text-align:center;padding:48px 18px;color:var(--ink2);font-size:.92rem;line-height:1.7}
+.msg b{display:block;font-size:1.02rem;color:var(--ink);margin-bottom:6px}
+#pages canvas{display:block;width:100%;height:auto;background:#fff;margin:0 auto 12px;border-radius:4px;box-shadow:0 1px 6px rgba(0,0,0,.18)}
+.bar{display:none;gap:8px;margin:0 0 12px}
+.bar .btn{flex:1;background:var(--ac);color:#fff;padding:11px}
+.bar .btn.sub{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.foot{text-align:center;font-size:.72rem;color:var(--ink2);padding:6px 16px 22px;line-height:1.6}
+@media (max-width:640px){.hd .btn{display:none}.wrap{padding:10px 6px 4px}.bar.on{display:flex}#pages canvas{border-radius:0;margin-bottom:8px}}
+@media print{.hd,.bar,.foot{display:none!important}body{background:#fff}.wrap{padding:0;max-width:none}#pages canvas{box-shadow:none;margin:0;border-radius:0;page-break-after:always}}
+</style>
+</head>
+<body>
+<div class="hd"><div class="in">
+  <div>
+    <div class="t">교육 결과보고서</div>
+    <div class="s" id="sub">불러오는 중…</div>
+  </div>
+  <span class="sp"></span>
+  <button class="btn" id="bDown1" hidden>PDF 내려받기</button>
+  <button class="btn" id="bPrint1" hidden>인쇄</button>
+</div></div>
+
+<div class="wrap">
+  <div class="bar" id="bar"><button class="btn" id="bDown2">PDF 내려받기</button><button class="btn sub" id="bPrint2">인쇄</button></div>
+  <div id="pages"><div class="msg">보고서를 불러오는 중입니다…</div></div>
+</div>
+<div class="foot" id="foot">CHM 교육관리 시스템 · 이 링크는 발송일로부터 30일간 열립니다</div>
+
+<script>
+(function(){
+  var API = 'https://script.google.com/macros/s/AKfycbwadXMlEXJUo9a5i0ydl9vIEG30Fr6lcvAOyKKFj9C8n-hrqvqI5xwHaST6d7YnZpOoLA/exec';
+  var PDFJS = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
+  var $ = function(id){ return document.getElementById(id); };
+  var DOC = null;   /* { name, bytes } */
+
+  function msg(title, text){
+    $('pages').innerHTML = '';
+    var d = document.createElement('div'); d.className = 'msg';
+    var b = document.createElement('b'); b.textContent = title;
+    d.appendChild(b); d.appendChild(document.createTextNode(text || ''));
+    $('pages').appendChild(d);
+  }
+
+  function b64bytes(dataUrl){
+    var bin = atob(String(dataUrl).split(',')[1] || '');
+    var u = new Uint8Array(bin.length);
+    for(var i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+    return u;
+  }
+
+  function download(){
+    if(!DOC) return;
+    var url = URL.createObjectURL(new Blob([DOC.bytes], { type:'application/pdf' }));
+    var a = document.createElement('a');
+    a.href = url; a.download = DOC.name || '교육결과보고서.pdf';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 30000);
+  }
+
+  function showButtons(){
+    ['bDown1','bPrint1'].forEach(function(id){ $(id).hidden = false; });
+    $('bar').classList.add('on');
+    $('bDown1').onclick = $('bDown2').onclick = download;
+    $('bPrint1').onclick = $('bPrint2').onclick = function(){ window.print(); };
+  }
+
+  function loadScript(src){
+    return new Promise(function(ok, no){
+      var s = document.createElement('script');
+      s.src = src; s.onload = ok; s.onerror = function(){ no(new Error(src)); };
+      document.head.appendChild(s);
+    });
+  }
+
+  /* PDF 를 쪽마다 그림으로 그린다 (휴대폰에서도 바로 보이게) */
+  function render(bytes){
+    return loadScript(PDFJS + 'pdf.min.js').then(function(){
+      var lib = window.pdfjsLib;
+      lib.GlobalWorkerOptions.workerSrc = PDFJS + 'pdf.worker.min.js';
+      return lib.getDocument({ data: bytes.slice(0) }).promise;
+    }).then(function(pdf){
+      var box = $('pages'); box.innerHTML = '';
+      var w = Math.min(box.clientWidth || 800, 900);
+      var ratio = Math.min(window.devicePixelRatio || 1, 2.5);
+      var chain = Promise.resolve();
+      for(var n = 1; n <= pdf.numPages; n++){
+        (function(n){
+          chain = chain.then(function(){ return pdf.getPage(n); }).then(function(pg){
+            var v1 = pg.getViewport({ scale:1 });
+            var vp = pg.getViewport({ scale: (w / v1.width) * ratio });
+            var c = document.createElement('canvas');
+            c.width = Math.floor(vp.width); c.height = Math.floor(vp.height);
+            box.appendChild(c);
+            return pg.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
+          });
+        })(n);
+      }
+      return chain;
+    });
+  }
+
+  var key = new URLSearchParams(location.search).get('k') || '';
+  if(!/^[0-9a-f]{32}$/i.test(key)){
+    $('sub').textContent = '';
+    msg('잘못된 링크입니다', '문자에 온 주소가 온전한지 확인해 주세요.');
+    return;
+  }
+
+  fetch(API + '?mode=repOpen&key=' + encodeURIComponent(key))
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if(!d || !d.ok){
+        $('sub').textContent = '';
+        msg('링크를 열 수 없습니다', (d && d.error) || '만료되었거나 올바르지 않은 링크입니다.');
+        return;
+      }
+      var head = [d.date, [d.co, d.site].filter(Boolean).join(' ')].filter(Boolean).join(' · ');
+      $('sub').textContent = head + (d.course ? ' · ' + d.course : '');
+      document.title = '교육결과보고 ' + (d.site || '') + ' (' + (d.date || '') + ')';
+      if(d.exp) $('foot').textContent = 'CHM 교육관리 시스템 · 이 링크는 ' + d.exp + ' 까지 열립니다';
+      DOC = { name: d.name, bytes: b64bytes(d.pdf) };
+      showButtons();
+      return render(DOC.bytes).catch(function(){
+        msg('미리보기를 띄우지 못했습니다', '위의 「PDF 내려받기」 로 파일을 열어 주세요.');
+      });
+    })
+    .catch(function(){
+      msg('불러오지 못했습니다', '네트워크 상태를 확인한 뒤 다시 열어 주세요.');
+    });
+})();
+</script>
+</body>
+</html>

@@ -795,7 +795,7 @@ tr.clickable:hover td{background:var(--surface-2)}
                   <span class="spacer"></span>
                   <button class="btn sm primary" id="adminAdd">수신자 추가</button>
                 </div>
-                <div class="tscroll"><table id="adminTable" style="min-width:789px"></table></div>
+                <div class="tscroll"><table id="adminTable" style="min-width:1023px"></table></div>
                 <p class="hint">교육이 끝나면 여기 등록된 주소로 결과보고서와 출석부 PDF가 갑니다. 수신 구분으로 둘 중 하나만 받게 할 수도 있고, <b>회사</b>를 CHM · CHMS 로 정하면 그 회사 교육만 받습니다(비워 두면 둘 다).</p>
               </div>
 
@@ -1323,7 +1323,7 @@ tr.clickable:hover td{background:var(--surface-2)}
       + esc(u.id || '') + ' · ' + (u.role === 'master' ? '마스터' : '일반') + '</span>';
     w.classList.toggle('temp', !!u.tempPw);
     if(u.tempPw) w.title = '초기 비밀번호를 쓰고 있습니다. 눌러서 바꿔주세요.';
-    $('railFoot').innerHTML = '7단계 · 끝난 교육만 집계 &nbsp;/&nbsp; ' + esc(u.name || '');
+    $('railFoot').innerHTML = '7단계 · 보고서 링크 문자 &nbsp;/&nbsp; ' + esc(u.name || '');
   }
 
   /* 설정 맨 아래 — 웹앱 주소와 서버 버전 (배포 확인용) */
@@ -1740,7 +1740,7 @@ tr.clickable:hover td{background:var(--surface-2)}
     $('adminTable').innerHTML =
       '<thead><tr><th style="width:118px">이름</th><th style="width:130px">소속</th><th>메일주소</th>'
       + '<th style="width:96px">회사</th>'
-      + '<th style="width:123px">수신 구분</th><th style="width:142px"></th></tr></thead><tbody>'
+      + '<th style="width:123px">수신 구분</th><th style="width:150px">휴대폰</th><th style="width:84px">문자</th><th style="width:142px"></th></tr></thead><tbody>'
       + (S.admins.length ? S.admins.map(function(a){
           var co = String(a.co || '').trim();
           return '<tr><td><b>' + esc(a.nm) + '</b></td><td>' + esc(a.dept || '—') + '</td>'
@@ -1749,9 +1749,11 @@ tr.clickable:hover td{background:var(--surface-2)}
                 ? '<span class="chip ' + (co === 'CHMS' ? 'chms' : 'chm') + '">' + esc(co) + '</span>'
                 : '<span class="chip plain">전체</span>') + '</td>'
             + '<td><span class="chip plain">' + esc(a.kind || '전체') + '</span></td>'
+            + '<td class="code" style="white-space:nowrap">' + (a.tel ? esc(telFmt(a.tel)) : '—') + '</td>'
+            + '<td>' + (a.sms === 'Y' ? '<span class="chip good">받음</span>' : '<span class="chip plain">안 받음</span>') + '</td>'
             + '<td class="acts"><button class="btn sm" data-edit="' + esc(a.mail) + '">수정</button>'
             + '<button class="btn sm danger" data-del="' + esc(a.mail) + '">삭제</button></td></tr>';
-        }).join('') : '<tr><td colspan="6" class="emptyrow">등록된 수신자가 없습니다. 여기에 등록해야 결과보고서가 메일로 나갑니다.</td></tr>')
+        }).join('') : '<tr><td colspan="8" class="emptyrow">등록된 수신자가 없습니다. 여기에 등록해야 결과보고서가 메일로 나갑니다.</td></tr>')
       + '</tbody>';
 
     bind($('adminTable'), 'data-edit', function(mail){
@@ -1783,11 +1785,16 @@ tr.clickable:hover td{background:var(--surface-2)}
       + '<div class="formrow"><label>수신 구분</label><select class="inp" id="d_kind">'
       + kinds.map(function(k){ return '<option' + (a.kind === k ? ' selected' : '') + '>' + k + '</option>'; }).join('')
       + '</select></div>'
+      + '<div class="formrow"><label>휴대폰</label><input class="inp" id="d_tel" inputmode="numeric" placeholder="010-0000-0000" value="' + esc(telFmt(a.tel || '')) + '"></div>'
+      + '<div class="formrow"><label>문자</label><label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:400">'
+      +   '<input type="checkbox" id="d_sms"' + (a.sms === 'Y' ? ' checked' : '') + '> 결과보고서 링크를 문자로도 받기</label></div>'
+      + '<p class="hint">결과보고서 메일이 나갈 때, 문자 받기를 켠 사람에게 <b>보고서 열람 링크</b>(로그인 없이 30일간 열림)가 문자로 함께 갑니다.</p>'
       + (a.mail ? '<p class="hint">메일주소는 바꿀 수 없습니다. 주소가 바뀌면 지우고 새로 등록하세요.</p>' : ''),
       function(close){
         apiPost({
           mode:'adminSave', nm:$('d_nm').value, dept:$('d_dept').value,
-          mail:$('d_mail').value, kind:$('d_kind').value, co:$('d_co').value
+          mail:$('d_mail').value, kind:$('d_kind').value, co:$('d_co').value,
+          tel:$('d_tel').value, sms:$('d_sms').checked ? 'Y' : 'N'
         }).then(function(r){
           if(!r.ok) return toast(r.error, true);
           toast(r.message); close(); loadMasters();
@@ -3360,6 +3367,7 @@ tr.clickable:hover td{background:var(--surface-2)}
         /* 잘 나갔을 때는 따로 알리지 않는다 — 작성란 맨 위에 「…에 발송했습니다」 가 남는다.
            빠진 것이 있을 때만 알린다 */
         if(attErr) toast('결과보고서만 보냈습니다 — 출석부는 빠졌습니다(' + attErr + ')', true);
+        else if(x.sms && x.sms.fail) toast('메일은 보냈지만 링크 문자 ' + x.sms.fail + '건이 실패했습니다 — ' + (x.sms.error || ''), true);
         markReportSent(REP.id);
         openReport(REP.id);
       });
