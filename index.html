@@ -199,6 +199,19 @@ textarea.inp{line-height:1.6; resize:vertical}
 .sub.on{background:var(--accent); border-color:var(--accent); color:#fff; font-weight:700}
 
 .main{min-width:0; display:flex; flex-direction:column; flex:1; background:var(--paper)}
+/* 다른 시스템 바로가기 카드 (계정 칩 왼쪽) */
+.sys-links{display:flex; align-items:center; gap:6px}
+.sys-link{display:inline-flex; align-items:center; gap:7px; padding:3px 12px 3px 3px; border-radius:10px;
+  background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.3); color:#fff; font-size:14px; font-weight:700;
+  text-decoration:none; white-space:nowrap; transition:background .12s, transform .12s}
+.sys-link:hover{background:rgba(255,255,255,.22); transform:translateY(-1px)}
+.sys-link .sl-ic{width:26px; height:26px; border-radius:7px; display:grid; place-items:center; font-size:15px; background:var(--sl-c)}
+.sys-link.sl-work{--sl-c:#16a34a}
+.sys-link.sl-safe{--sl-c:#2563eb}
+@media (max-width:820px){
+  .sys-link{padding:3px; gap:0}
+  .sys-link .sl-tx{display:none}
+}
 .whoami{
   display:flex; align-items:center; gap:7px; border:1px solid var(--line-2);
   background:var(--surface); color:var(--ink-2); border-radius:999px; padding:5px 13px; font-size:14px;
@@ -695,6 +708,7 @@ tr.clickable:hover td{background:var(--surface-2)}
     <img class="hlogo" src="data:image/png;base64,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" alt="CHM">
     <div class="hnm"><b>교육관리 시스템</b><span>CHM · CHMS</span></div>
     <span class="spacer"></span>
+    <nav class="sys-links" aria-label="다른 시스템"><a class="sys-link sl-work" href="https://c01764-stack.github.io/team-schedule/" title="업무관리 대시보드(으)로 이동"><span class="sl-ic" aria-hidden="true">📋</span><span class="sl-tx">업무관리</span></a><a class="sys-link sl-safe" href="https://chmsafety.github.io/safety-inspection/" title="안전보건 관리시스템(으)로 이동"><span class="sl-ic" aria-hidden="true">🦺</span><span class="sl-tx">안전관리</span></a></nav>
     <button class="whoami" id="whoami" title="내 계정 · 비밀번호 변경">—</button>
     <button class="btn sm" id="btnReload">새로고침</button>
     <button class="btn sm" id="btnLogout">로그아웃</button>
