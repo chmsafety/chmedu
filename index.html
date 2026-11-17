@@ -3583,7 +3583,8 @@ tr.clickable:hover td{background:var(--surface-2)}
       + rows
       + '</tbody></table>'
       + '<div class="note">위와 같이 교육을 실시하고 참석자가 서명하였음을 확인합니다.</div>'
-      + '<div class="foot">보고자 : ' + esc(d.reporter || (S.user && S.user.name) || '') + '　／　작성일 : ' + esc(today_()) + '</div>';
+      /* 출석부 보고자 = 그 교육을 한 강사 (강사가 비어 있을 때만 설정의 보고자) */
+      + '<div class="foot">보고자 : ' + esc(String(s.teacher || '').trim() || d.reporter || (S.user && S.user.name) || '') + '　／　작성일 : ' + esc(today_()) + '</div>';
   }
 
   function attSend(){
