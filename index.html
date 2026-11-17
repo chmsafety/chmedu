@@ -486,8 +486,9 @@ tr.clickable:hover td{background:var(--surface-2)}
 .a4 .txb .ln{padding-left:2mm}
 /* 쪽 나누기 — 걸치는 줄을 다음 장으로 미는 빈 줄 · 쪽 번호 · (화면에만) 자르는 선 */
 .a4 .pgbrk td{border:0; padding:0}
-/* 앱 표의 「마지막 줄 아래 선 없앰」 규칙이 결과보고서 표에도 먹어 사진 칸 아래 선이 빠져 있었다 */
-#a4 > table > tbody > tr:last-child > td{border-bottom:1px solid #000}
+/* 앱 표의 「마지막 줄 아래 선 없앰」 규칙이 종이 표에도 먹어 표 맨 아래 선이 빠져 있었다
+   → 결과보고서뿐 아니라 출석부·월간보고(화면 밖에 그리는 출석부 포함) 모두 맨 아래 선을 긋는다 */
+.a4 > table > tbody > tr:last-child > td{border-bottom:1px solid #000}
 .a4 div.pgbrk{display:block}
 .a4 .pgno{position:absolute; left:0; right:0; height:10mm; display:flex; align-items:center; justify-content:center;
           font-size:9pt; color:#444; letter-spacing:1px; pointer-events:none}
